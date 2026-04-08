@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --primary: 169 81 198;    /* #a951c6 */
+    --secondary: 144 105 154; /* #90699a */
+    --tertiary: 79 56 0;      /* #4f3800 */
+    --neutral: 126 116 125;   /* #7e747d */
+    --background: 15 23 42;   /* #0f172a */
+    --surface: 30 41 59;      /* #1e293b */
+  }
+
+  body {
+    @apply bg-background text-neutral antialiased font-sans transition-colors duration-300;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary hover:bg-primary-dark text-white font-bold py-2 px-6 rounded-lg transition-all duration-200 shadow-lg hover:shadow-primary/20 active:scale-95 disabled:opacity-50;
+  }
+
+  .input-field {
+    @apply bg-surface border border-neutral/20 text-white rounded-lg block w-full p-3 focus:ring-primary focus:border-primary placeholder-neutral/50 outline-none transition-all;
+  }
+
+  .glass-card {
+    @apply bg-surface/50 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl;
+  }
+}
+
+/* Custom Scrollbar for Dark Mode */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-background;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-neutral/30 rounded-full hover:bg-neutral/50;
+}
