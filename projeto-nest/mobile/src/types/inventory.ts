@@ -3,6 +3,9 @@ export interface StockItem {
   name: string;
   sku: string;
   quantity: number;
+  purchasePrice: number;
+  mlSellingPrice: number;
+  directSellingPrice: number;
   location?: string;
 }
 

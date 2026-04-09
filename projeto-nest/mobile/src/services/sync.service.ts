@@ -1,8 +1,6 @@
 import { useInventoryStore } from '../stores/inventory';
 import { Network } from '@capacitor/network';
-import axios from 'axios';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import api from '@/services/api';
 
 export class SyncService {
   private static isSyncing = false;
@@ -32,7 +30,7 @@ export class SyncService {
 
     for (const movement of pending) {
       try {
-        await axios.post(`${API_URL}/movements`, movement);
+        await api.post('/movements', movement);
         await store.markAsSynced(movement.id);
         console.log(`Synced movement ${movement.id}`);
       } catch (error) {
