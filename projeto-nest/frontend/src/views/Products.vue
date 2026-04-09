@@ -303,6 +303,21 @@ const generateSlug = () => {
           />
         </div>
 
+        <div class="flex items-center gap-3 bg-white/10 p-4 rounded-xl border border-primary/20">
+          <input 
+            id="mlListed"
+            v-model="currentProduct.isListedOnML" 
+            type="checkbox" 
+            class="w-5 h-5 accent-primary bg-background border-white/20 rounded focus:ring-primary/50"
+          />
+          <div class="flex-1">
+            <label for="mlListed" class="text-sm text-white font-medium cursor-pointer block">
+              Listar no Mercado Livre
+            </label>
+            <span class="text-[10px] text-neutral">Ative para exibir este produto no seu catálogo do ML.</span>
+          </div>
+        </div>
+
         <div class="space-y-1.5">
           <label class="text-sm font-medium text-neutral">Fornecedor</label>
           <select 
@@ -360,18 +375,6 @@ const generateSlug = () => {
             <span class="block font-semibold uppercase opacity-50 mb-1">Última edição</span>
             <span class="text-white">{{ currentProduct.updatedBy || '---' }}</span>
           </div>
-        </div>
-
-        <div class="flex items-center gap-3 bg-white/5 p-4 rounded-xl border border-white/10">
-          <input 
-            id="mlListed"
-            v-model="currentProduct.isListedOnML" 
-            type="checkbox" 
-            class="w-5 h-5 accent-primary bg-background border-white/20 rounded focus:ring-primary/50"
-          />
-          <label for="mlListed" class="text-sm text-white font-medium cursor-pointer">
-            Produto já listado no Mercado Livre?
-          </label>
         </div>
 
         <div class="space-y-4">
