@@ -4,6 +4,8 @@ import {
   Body,
   Get,
   Param,
+  Patch,
+  Delete,
   UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
@@ -30,10 +32,31 @@ export class UsersController {
     return this.usersService.create(registerDto.name, registerDto.email, registerDto.password);
   }
 
+  @Get()
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Lista todos os usuários (Apenas ADMIN)' })
+  async findAll() {
+    return this.usersService.findAll();
+  }
+
   @Get(':id')
   @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Busca um usuário pelo ID (Apenas ADMIN)' })
   async findOne(@Param('id') id: string) {
     return this.usersService.findById(id);
+  }
+
+  @Patch(':id')
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Atualiza dados de um usuário (Apenas ADMIN)' })
+  async update(@Param('id') id: string, @Body() updateData: any) {
+    return this.usersService.update(id, updateData);
+  }
+
+  @Delete(':id')
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Remove um usuário (Soft Delete) (Apenas ADMIN)' })
+  async remove(@Param('id') id: string) {
+    return this.usersService.remove(id);
   }
 }

@@ -11,6 +11,9 @@ async function bootstrap() {
     logger: winstonLoggerConfig,
   });
 
+  // Habilitar CORS
+  app.enableCors();
+
   // Prefixo Global da API
   app.setGlobalPrefix('api/v1');
 

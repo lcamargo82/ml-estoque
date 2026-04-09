@@ -26,6 +26,10 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    if (!user.isActive) {
+      throw new UnauthorizedException('User account is inactive');
+    }
+
     const payload = { 
       email: user.email, 
       name: user.name,

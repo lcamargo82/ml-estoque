@@ -30,11 +30,35 @@ export class UsersService {
   async findByEmail(email: string): Promise<User | undefined> {
     return this.userRepository.findOne({
       where: { email },
-      select: ['id', 'email', 'name', 'password', 'role'],
+      select: ['id', 'email', 'name', 'password', 'role', 'isActive'],
     });
   }
 
   async findById(id: string): Promise<User | undefined> {
     return this.userRepository.findOne({ where: { id } });
+  }
+
+  async findAll(): Promise<User[]> {
+    return this.userRepository.find({
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async update(id: string, updateData: Partial<User>): Promise<User> {
+    const user = await this.findById(id);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    if (updateData.password) {
+      updateData.password = await bcrypt.hash(updateData.password, 10);
+    }
+
+    Object.assign(user, updateData);
+    return this.userRepository.save(user);
+  }
+
+  async remove(id: string): Promise<void> {
+    await this.userRepository.softDelete(id);
   }
 }

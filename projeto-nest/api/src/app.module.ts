@@ -4,6 +4,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from '@modules/auth/auth.module';
 import { UsersModule } from '@modules/users/users.module';
 import { ProductsModule } from '@modules/products/products.module';
+import { SuppliersModule } from '@modules/suppliers/suppliers.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 import { validationSchema } from '@config/env.validation';
 import { getTypeOrmConfig } from '@config/typeorm.config';
 
@@ -21,6 +24,11 @@ import { getTypeOrmConfig } from '@config/typeorm.config';
     AuthModule,
     UsersModule,
     ProductsModule,
+    SuppliersModule,
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads',
+    }),
   ],
 })
 export class AppModule {}
