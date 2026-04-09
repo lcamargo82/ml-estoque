@@ -18,25 +18,31 @@ import type { User } from '@/types';
 import { useToast } from 'vue-toastification';
 import BaseModal from '@/components/ui/BaseModal.vue';
 import BaseInput from '@/components/ui/BaseInput.vue';
+import BaseConfirmModal from '@/components/ui/BaseConfirmModal.vue';
+import { useAuthStore } from '@/stores/auth';
 
 const toast = useToast();
+const authStore = useAuthStore();
 const users = ref<User[]>([]);
 const isLoading = ref(true);
 const searchQuery = ref('');
 const isModalOpen = ref(false);
 const isEditing = ref(false);
+const isConfirmOpen = ref(false);
+const userToDelete = ref<string | null>(null);
 const currentUser = ref<Partial<User>>({
   name: '',
   email: '',
-  role: 'USER',
-  isActive: true
+  role: 'user',
+  isActive: true,
+  password: ''
 });
 
 const fetchUsers = async () => {
   isLoading.value = true;
   try {
     users.value = await UserRepository.list();
-  } catch (error) {
+  } catch (error: any) {
     toast.error('Erro ao carregar usuários');
   } finally {
     isLoading.value = false;
@@ -55,8 +61,9 @@ const openCreateModal = () => {
   currentUser.value = {
     name: '',
     email: '',
-    role: 'USER',
-    isActive: true
+    role: 'user',
+    isActive: true,
+    password: ''
   };
   isModalOpen.value = true;
 };
@@ -78,8 +85,9 @@ const handleSave = async () => {
     }
     isModalOpen.value = false;
     fetchUsers();
-  } catch (error) {
-    toast.error('Erro ao salvar usuário');
+  } catch (error: any) {
+    const errorMsg = error.response?.data?.message;
+    toast.error(Array.isArray(errorMsg) ? errorMsg[0] : (errorMsg || 'Erro ao salvar usuário'));
   }
 };
 
@@ -88,20 +96,28 @@ const toggleUserStatus = async (user: User) => {
     await UserRepository.update(user.id, { isActive: !user.isActive });
     toast.success(`Usuário ${user.isActive ? 'desativado' : 'ativado'}`);
     fetchUsers();
-  } catch (error) {
-    toast.error('Erro ao alterar status');
+  } catch (error: any) {
+    toast.error(error.response?.data?.message || 'Erro ao alterar status');
   }
 };
 
-const handleDelete = async (id: string) => {
-  if (confirm('Tem certeza que deseja excluir este usuário?')) {
-    try {
-      await UserRepository.delete(id);
-      toast.success('Usuário excluído');
-      fetchUsers();
-    } catch (error) {
-      toast.error('Erro ao excluir usuário');
-    }
+const confirmDelete = (id: string) => {
+  userToDelete.value = id;
+  isConfirmOpen.value = true;
+};
+
+const handleDelete = async () => {
+  if (!userToDelete.value) return;
+  
+  try {
+    await UserRepository.delete(userToDelete.value);
+    toast.success('Usuário excluído');
+    fetchUsers();
+  } catch (error: any) {
+    toast.error(error.response?.data?.message || 'Erro ao excluir usuário');
+  } finally {
+    isConfirmOpen.value = false;
+    userToDelete.value = null;
   }
 };
 
@@ -181,18 +197,23 @@ onMounted(fetchUsers);
               </td>
               <td class="px-6 py-4">
                 <div class="flex items-center gap-2">
-                  <ShieldCheck v-if="user.role === 'ADMIN'" class="w-4 h-4 text-primary" />
+                  <ShieldCheck v-if="user.role === 'admin'" class="w-4 h-4 text-primary" />
                   <Shield v-else class="w-4 h-4 text-neutral" />
                   <span 
                     class="text-xs font-medium"
-                    :class="user.role === 'ADMIN' ? 'text-white' : 'text-neutral'"
+                    :class="user.role === 'admin' ? 'text-white' : 'text-neutral'"
                   >
                     {{ user.role }}
                   </span>
                 </div>
               </td>
               <td class="px-6 py-4 text-center">
+                <div v-if="user.id === authStore.user?.id" class="flex flex-col items-center gap-1 opacity-50 cursor-not-allowed">
+                  <ToggleRight class="w-6 h-6 text-green-400" />
+                  <span class="text-[10px] font-medium text-neutral uppercase">Você</span>
+                </div>
                 <button 
+                  v-else
                   @click="toggleUserStatus(user)"
                   class="inline-flex items-center gap-2 transition-all"
                   :class="user.isActive ? 'text-green-400' : 'text-neutral'"
@@ -207,9 +228,14 @@ onMounted(fetchUsers);
                   <button @click="openEditModal(user)" class="p-2 text-neutral hover:text-white hover:bg-white/5 rounded-lg transition-all">
                     <Edit2 class="w-4 h-4" />
                   </button>
-                  <button @click="handleDelete(user.id)" class="p-2 text-neutral hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all">
+                  <button 
+                    v-if="user.id !== authStore.user?.id"
+                    @click="confirmDelete(user.id)" 
+                    class="p-2 text-neutral hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
+                  >
                     <Trash2 class="w-4 h-4" />
                   </button>
+                  <div v-else class="w-8"></div>
                 </div>
               </td>
             </tr>
@@ -240,23 +266,31 @@ onMounted(fetchUsers);
           required
         />
 
-        <div class="space-y-2">
+        <BaseInput 
+          v-model="currentUser.password" 
+          type="password"
+          :label="isEditing ? 'Nova Senha (opcional)' : 'Senha Temporária'" 
+          :placeholder="isEditing ? 'Deixe vazio para manter a atual' : 'No mínimo 6 caracteres'" 
+          :required="!isEditing"
+        />
+
+        <div v-if="!isEditing" class="space-y-2">
           <label class="text-sm font-medium text-neutral mb-2 block">Nível de Acesso</label>
           <div class="grid grid-cols-2 gap-4">
             <button 
               type="button"
-              @click="currentUser.role = 'USER'"
+              @click="currentUser.role = 'user'"
               class="px-4 py-3 rounded-xl border transition-all text-sm font-medium flex flex-col items-center gap-2"
-              :class="currentUser.role === 'USER' ? 'bg-primary/10 border-primary text-primary' : 'bg-background border-white/10 text-neutral hover:bg-white/5'"
+              :class="currentUser.role === 'user' ? 'bg-primary/10 border-primary text-primary' : 'bg-background border-white/10 text-neutral hover:bg-white/5'"
             >
               <Shield class="w-5 h-5" />
               Usuário (Básico)
             </button>
             <button 
               type="button"
-              @click="currentUser.role = 'ADMIN'"
+              @click="currentUser.role = 'admin'"
               class="px-4 py-3 rounded-xl border transition-all text-sm font-medium flex flex-col items-center gap-2"
-              :class="currentUser.role === 'ADMIN' ? 'bg-primary/10 border-primary text-primary' : 'bg-background border-white/10 text-neutral hover:bg-white/5'"
+              :class="currentUser.role === 'admin' ? 'bg-primary/10 border-primary text-primary' : 'bg-background border-white/10 text-neutral hover:bg-white/5'"
             >
               <ShieldCheck class="w-5 h-5" />
               Administrador
@@ -264,7 +298,7 @@ onMounted(fetchUsers);
           </div>
         </div>
 
-        <div class="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
+        <div v-if="!isEditing" class="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
           <div>
             <div class="text-sm font-medium text-white">Usuário Ativo</div>
             <div class="text-xs text-neutral">Define se o usuário pode acessar o sistema</div>
@@ -296,5 +330,14 @@ onMounted(fetchUsers);
         </div>
       </div>
     </BaseModal>
+
+    <!-- Confirm Delete Modal -->
+    <BaseConfirmModal
+      :show="isConfirmOpen"
+      title="Excluir Usuário"
+      message="Tem certeza que deseja excluir este usuário? Esta ação não pode ser desfeita, mas o usuário será removido logicamente do sistema."
+      @confirm="handleDelete"
+      @cancel="isConfirmOpen = false"
+    />
   </div>
 </template>

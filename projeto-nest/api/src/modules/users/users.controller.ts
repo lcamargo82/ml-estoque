@@ -7,9 +7,11 @@ import {
   Patch,
   Delete,
   UseGuards,
+  Req,
+  ForbiddenException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { RegisterDto } from '@modules/auth/dto/login.dto';
+import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
 import { UserRole } from './entities/user.entity';
 import { JwtAuthGuard } from '@modules/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '@modules/auth/guards/roles.guard';
@@ -28,8 +30,8 @@ export class UsersController {
   @ApiOperation({ summary: 'Registra um novo usuário (Apenas ADMIN)' })
   @ApiResponse({ status: 201, description: 'Usuário criado com sucesso' })
   @ApiResponse({ status: 403, description: 'Acesso negado' })
-  async create(@Body() registerDto: RegisterDto) {
-    return this.usersService.create(registerDto.name, registerDto.email, registerDto.password);
+  async create(@Body() createUserDto: CreateUserDto) {
+    return this.usersService.create(createUserDto);
   }
 
   @Get()
@@ -49,14 +51,22 @@ export class UsersController {
   @Patch(':id')
   @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Atualiza dados de um usuário (Apenas ADMIN)' })
-  async update(@Param('id') id: string, @Body() updateData: any) {
+  async update(@Param('id') id: string, @Body() updateData: UpdateUserDto, @Req() req) {
+    // Impedir que o usuário se desative
+    if (id === req.user.id && updateData.isActive === false) {
+      throw new ForbiddenException('Não é possível desativar sua própria conta');
+    }
     return this.usersService.update(id, updateData);
   }
 
   @Delete(':id')
   @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Remove um usuário (Soft Delete) (Apenas ADMIN)' })
-  async remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string, @Req() req) {
+    // Impedir que o usuário se auto-exclua
+    if (id === req.user.id) {
+      throw new ForbiddenException('Não é possível excluir sua própria conta');
+    }
     return this.usersService.remove(id);
   }
 }

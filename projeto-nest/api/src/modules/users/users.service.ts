@@ -11,16 +11,15 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  async create(name: string, email: string, password: string): Promise<User> {
-    const existingUser = await this.userRepository.findOne({ where: { email } });
+  async create(userData: Partial<User>): Promise<User> {
+    const existingUser = await this.userRepository.findOne({ where: { email: userData.email } });
     if (existingUser) {
       throw new ConflictException('Email already exists');
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(userData.password, 10);
     const user = this.userRepository.create({
-      name,
-      email,
+      ...userData,
       password: hashedPassword,
     });
 

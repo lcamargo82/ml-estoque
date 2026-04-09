@@ -16,6 +16,7 @@ import type { Product } from '@/types';
 import { useToast } from 'vue-toastification';
 import BaseModal from '@/components/ui/BaseModal.vue';
 import BaseInput from '@/components/ui/BaseInput.vue';
+import BaseConfirmModal from '@/components/ui/BaseConfirmModal.vue';
 import { SupplierRepository } from '@/repositories/SupplierRepository';
 import type { Supplier } from '@/types';
 
@@ -26,6 +27,8 @@ const searchQuery = ref('');
 const isLoading = ref(true);
 const isModalOpen = ref(false);
 const isEditing = ref(false);
+const isConfirmOpen = ref(false);
+const productToDelete = ref<string | null>(null);
 const currentProduct = ref<Partial<Product>>({
   name: '',
   sku: '',
@@ -46,7 +49,7 @@ const fetchProducts = async () => {
     ]);
     products.value = productsData;
     suppliers.value = suppliersData;
-  } catch (error) {
+  } catch (error: any) {
     toast.error('Erro ao carregar dados');
   } finally {
     isLoading.value = false;
@@ -92,20 +95,29 @@ const handleSave = async () => {
     }
     isModalOpen.value = false;
     fetchProducts();
-  } catch (error) {
-    toast.error('Erro ao salvar produto');
+  } catch (error: any) {
+    const errorMsg = error.response?.data?.message;
+    toast.error(Array.isArray(errorMsg) ? errorMsg[0] : (errorMsg || 'Erro ao salvar produto'));
   }
 };
 
-const handleDelete = async (id: string) => {
-  if (confirm('Tem certeza que deseja excluir este produto?')) {
-    try {
-      await ProductRepository.delete(id);
-      toast.success('Produto excluído');
-      fetchProducts();
-    } catch (error) {
-      toast.error('Erro ao excluir produto');
-    }
+const confirmDelete = (id: string) => {
+  productToDelete.value = id;
+  isConfirmOpen.value = true;
+};
+
+const handleDelete = async () => {
+  if (!productToDelete.value) return;
+
+  try {
+    await ProductRepository.delete(productToDelete.value);
+    toast.success('Produto excluído');
+    fetchProducts();
+  } catch (error: any) {
+    toast.error(error.response?.data?.message || 'Erro ao excluir produto');
+  } finally {
+    isConfirmOpen.value = false;
+    productToDelete.value = null;
   }
 };
 
@@ -181,10 +193,10 @@ const generateSlug = () => {
           <thead>
             <tr class="border-b border-white/5 bg-white/5">
               <th class="px-6 py-4 text-xs font-semibold text-neutral uppercase tracking-wider">Produto</th>
-              <th class="px-6 py-4 text-xs font-semibold text-neutral uppercase tracking-wider">SKU</th>
               <th class="px-6 py-4 text-xs font-semibold text-neutral uppercase tracking-wider text-center">Estoque</th>
+              <th class="px-6 py-4 text-xs font-semibold text-neutral uppercase tracking-wider">Custo</th>
               <th class="px-6 py-4 text-xs font-semibold text-neutral uppercase tracking-wider">Preço ML</th>
-              <th class="px-6 py-4 text-xs font-semibold text-neutral uppercase tracking-wider">Status</th>
+              <th class="px-6 py-4 text-xs font-semibold text-neutral uppercase tracking-wider">Venda Direta</th>
               <th class="px-6 py-4 text-xs font-semibold text-neutral uppercase tracking-wider text-right">Ações</th>
             </tr>
           </thead>
@@ -198,12 +210,13 @@ const generateSlug = () => {
                   </div>
                   <div>
                     <div class="font-medium text-white group-hover:text-primary transition-colors">{{ product.name }}</div>
-                    <div class="text-xs text-neutral truncate max-w-[200px]">{{ product.slug }}</div>
+                    <div class="flex items-center gap-2 mt-0.5">
+                      <code class="text-[10px] bg-white/5 px-1.5 py-0.5 rounded text-neutral border border-white/10">{{ product.sku }}</code>
+                      <span class="text-[10px] text-neutral/40">|</span>
+                      <span class="text-[10px] text-neutral italic">{{ product.slug }}</span>
+                    </div>
                   </div>
                 </div>
-              </td>
-              <td class="px-6 py-4">
-                <code class="text-xs bg-white/5 px-2 py-1 rounded text-neutral border border-white/10">{{ product.sku }}</code>
               </td>
               <td class="px-6 py-4 text-center">
                 <span 
@@ -218,22 +231,29 @@ const generateSlug = () => {
                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-white font-medium">R$ {{ product.mlSellingPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) }}</div>
-                <div class="text-[10px] text-neutral">Custo: R$ {{ product.purchasePrice }}</div>
+                <div class="text-neutral text-sm">R$ {{ product.purchasePrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) }}</div>
               </td>
-              <td class="px-6 py-4">
-                <div v-if="product.isListedOnML" class="flex items-center gap-1.5 text-xs text-green-400">
-                  <div class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div>
-                  Listado no ML
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex flex-col">
+                  <div class="text-primary font-bold">R$ {{ product.mlSellingPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) }}</div>
+                  <div v-if="product.isListedOnML" class="text-[10px] text-green-400 font-medium flex items-center gap-1 mt-1">
+                    <div class="w-1 h-1 bg-green-400 rounded-full animate-pulse"></div>
+                    Anunciado
+                  </div>
                 </div>
-                <div v-else class="text-xs text-neutral italic">Não listado</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm">
+                <div class="text-white font-medium">R$ {{ product.directSellingPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) }}</div>
+                <div class="text-[10px] text-green-400/60 font-medium mt-1">
+                  Margem: {{ ((product.directSellingPrice - product.purchasePrice) / product.directSellingPrice * 100).toFixed(1) }}%
+                </div>
               </td>
               <td class="px-6 py-4 text-right">
                 <div class="flex items-center justify-end gap-2">
                   <button @click="openEditModal(product)" class="p-2 text-neutral hover:text-white hover:bg-white/5 rounded-lg transition-all">
                     <Edit2 class="w-4 h-4" />
                   </button>
-                  <button @click="handleDelete(product.id)" class="p-2 text-neutral hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all">
+                  <button @click="confirmDelete(product.id)" class="p-2 text-neutral hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all">
                     <Trash2 class="w-4 h-4" />
                   </button>
                 </div>
@@ -382,5 +402,14 @@ const generateSlug = () => {
         </div>
       </div>
     </BaseModal>
+
+    <!-- Confirm Delete Modal -->
+    <BaseConfirmModal
+      :show="isConfirmOpen"
+      title="Excluir Produto"
+      message="Tem certeza que deseja excluir este produto do catálogo? Esta ação removerá o item do estoque permanentemente."
+      @confirm="handleDelete"
+      @cancel="isConfirmOpen = false"
+    />
   </div>
 </template>

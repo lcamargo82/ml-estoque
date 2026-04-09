@@ -16,6 +16,7 @@ import type { Supplier } from '@/types';
 import { useToast } from 'vue-toastification';
 import BaseModal from '@/components/ui/BaseModal.vue';
 import BaseInput from '@/components/ui/BaseInput.vue';
+import BaseConfirmModal from '@/components/ui/BaseConfirmModal.vue';
 
 const toast = useToast();
 const suppliers = ref<Supplier[]>([]);
@@ -23,6 +24,8 @@ const isLoading = ref(true);
 const searchQuery = ref('');
 const isModalOpen = ref(false);
 const isEditing = ref(false);
+const isConfirmOpen = ref(false);
+const supplierToDelete = ref<string | null>(null);
 const currentSupplier = ref<Partial<Supplier>>({
   name: '',
   taxId: '',
@@ -33,7 +36,7 @@ const fetchSuppliers = async () => {
   isLoading.value = true;
   try {
     suppliers.value = await SupplierRepository.list();
-  } catch (error) {
+  } catch (error: any) {
     toast.error('Erro ao carregar fornecedores');
   } finally {
     isLoading.value = false;
@@ -74,20 +77,29 @@ const handleSave = async () => {
     }
     isModalOpen.value = false;
     fetchSuppliers();
-  } catch (error) {
-    toast.error('Erro ao salvar fornecedor');
+  } catch (error: any) {
+    const errorMsg = error.response?.data?.message;
+    toast.error(Array.isArray(errorMsg) ? errorMsg[0] : (errorMsg || 'Erro ao salvar fornecedor'));
   }
 };
 
-const handleDelete = async (id: string) => {
-  if (confirm('Tem certeza que deseja excluir este fornecedor?')) {
-    try {
-      await SupplierRepository.delete(id);
-      toast.success('Fornecedor excluído');
-      fetchSuppliers();
-    } catch (error) {
-      toast.error('Erro ao excluir fornecedor');
-    }
+const confirmDelete = (id: string) => {
+  supplierToDelete.value = id;
+  isConfirmOpen.value = true;
+};
+
+const handleDelete = async () => {
+  if (!supplierToDelete.value) return;
+  
+  try {
+    await SupplierRepository.delete(supplierToDelete.value);
+    toast.success('Fornecedor excluído');
+    fetchSuppliers();
+  } catch (error: any) {
+    toast.error(error.response?.data?.message || 'Erro ao excluir fornecedor');
+  } finally {
+    isConfirmOpen.value = false;
+    supplierToDelete.value = null;
   }
 };
 
@@ -174,7 +186,7 @@ onMounted(fetchSuppliers);
                   <button @click="openEditModal(supplier)" class="p-2 text-neutral hover:text-white hover:bg-white/5 rounded-lg transition-all">
                     <Edit2 class="w-4 h-4" />
                   </button>
-                  <button @click="handleDelete(supplier.id)" class="p-2 text-neutral hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all">
+                  <button @click="confirmDelete(supplier.id)" class="p-2 text-neutral hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all">
                     <Trash2 class="w-4 h-4" />
                   </button>
                 </div>
@@ -227,5 +239,14 @@ onMounted(fetchSuppliers);
         </div>
       </div>
     </BaseModal>
+
+    <!-- Confirm Delete Modal -->
+    <BaseConfirmModal
+      :show="isConfirmOpen"
+      title="Excluir Fornecedor"
+      message="Tem certeza que deseja excluir este fornecedor? Esta ação não pode ser desfeita e pode afetar produtos vinculados a ele."
+      @confirm="handleDelete"
+      @cancel="isConfirmOpen = false"
+    />
   </div>
 </template>

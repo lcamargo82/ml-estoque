@@ -1,5 +1,6 @@
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { IsNotEmpty, IsString, IsNumber, Min, IsOptional, IsBoolean, IsArray } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateProductDto {
   @ApiProperty({ example: 'Teclado Mecânico RGB', description: 'Nome do produto' })
@@ -23,21 +24,25 @@ export class CreateProductDto {
   supplierId?: string;
 
   @ApiProperty({ example: 10, description: 'Quantidade em estoque' })
+  @Type(() => Number)
   @IsNumber()
   @Min(0)
   quantity: number;
 
   @ApiProperty({ example: 150.5, description: 'Preço de compra' })
+  @Type(() => Number)
   @IsNumber()
   @Min(0)
   purchasePrice: number;
 
   @ApiProperty({ example: 299.9, description: 'Preço de venda ML' })
+  @Type(() => Number)
   @IsNumber()
   @Min(0)
   mlSellingPrice: number;
 
   @ApiProperty({ example: 280.0, description: 'Preço de venda direta' })
+  @Type(() => Number)
   @IsNumber()
   @Min(0)
   directSellingPrice: number;

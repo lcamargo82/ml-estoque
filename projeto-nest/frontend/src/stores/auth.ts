@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import axios from 'axios';
+import api from '@/services/api';
 
 interface User {
   id: string;
@@ -26,14 +26,13 @@ export const useAuthStore = defineStore('auth', {
       this.loading = true;
       this.error = null;
       try {
-        const response = await axios.post('/api/v1/auth/login', credentials);
+        const response = await api.post('/auth/login', credentials);
         const { access_token, user } = response.data;
         
         this.token = access_token;
         this.user = user;
         
         localStorage.setItem('token', access_token);
-        axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
         
         return true;
       } catch (err: any) {
@@ -48,13 +47,12 @@ export const useAuthStore = defineStore('auth', {
       this.user = null;
       this.token = '';
       localStorage.removeItem('token');
-      delete axios.defaults.headers.common['Authorization'];
     },
 
     async fetchProfile() {
       if (!this.token) return;
       try {
-        const response = await axios.get('/api/v1/auth/profile');
+        const response = await api.get('/auth/profile');
         this.user = response.data;
       } catch (err) {
         this.logout();
