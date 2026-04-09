@@ -6,6 +6,7 @@ export interface StockItem {
   purchasePrice: number;
   mlSellingPrice: number;
   directSellingPrice: number;
+  isListedOnML: boolean;
   location?: string;
 }
 

@@ -6,6 +6,7 @@ import { Preferences } from '@capacitor/preferences';
 export const useInventoryStore = defineStore('inventory', {
   state: () => ({
     items: [] as StockItem[],
+    suppliers: [] as any[],
     movementsQueue: [] as Movement[],
     loading: false,
     error: null as string | null
@@ -23,6 +24,21 @@ export const useInventoryStore = defineStore('inventory', {
       if (savedQueue) {
         this.movementsQueue = JSON.parse(savedQueue);
       }
+
+      const { value: savedSuppliers } = await Preferences.get({ key: 'suppliers' });
+      if (savedSuppliers) {
+        this.suppliers = JSON.parse(savedSuppliers);
+      }
+    },
+
+    async fetchSuppliers() {
+      try {
+        const response = await api.get('/suppliers');
+        this.suppliers = response.data;
+        await Preferences.set({ key: 'suppliers', value: JSON.stringify(this.suppliers) });
+      } catch (err) {
+        console.error('Failed to fetch suppliers:', err);
+      }
     },
 
     async fetchItems() {
@@ -36,6 +52,21 @@ export const useInventoryStore = defineStore('inventory', {
       } catch (err: any) {
         this.error = err.response?.data?.message || 'Erro ao carregar estoque';
         console.error('Failed to fetch inventory:', err);
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async createProduct(productData: any) {
+      this.loading = true;
+      try {
+        const response = await api.post('/products', productData);
+        this.items.unshift(response.data);
+        await Preferences.set({ key: 'items', value: JSON.stringify(this.items) });
+        return response.data;
+      } catch (err: any) {
+        const message = err.response?.data?.message || 'Erro ao criar produto';
+        throw new Error(Array.isArray(message) ? message[0] : message);
       } finally {
         this.loading = false;
       }

@@ -197,6 +197,7 @@ const generateSlug = () => {
               <th class="px-6 py-4 text-xs font-semibold text-neutral uppercase tracking-wider">Custo</th>
               <th class="px-6 py-4 text-xs font-semibold text-neutral uppercase tracking-wider">Preço ML</th>
               <th class="px-6 py-4 text-xs font-semibold text-neutral uppercase tracking-wider">Venda Direta</th>
+              <th class="px-6 py-4 text-xs font-semibold text-neutral uppercase tracking-wider">Status</th>
               <th class="px-6 py-4 text-xs font-semibold text-neutral uppercase tracking-wider text-right">Ações</th>
             </tr>
           </thead>
@@ -236,9 +237,8 @@ const generateSlug = () => {
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex flex-col">
                   <div class="text-primary font-bold">R$ {{ product.mlSellingPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) }}</div>
-                  <div v-if="product.isListedOnML" class="text-[10px] text-green-400 font-medium flex items-center gap-1 mt-1">
-                    <div class="w-1 h-1 bg-green-400 rounded-full animate-pulse"></div>
-                    Anunciado
+                  <div class="text-[10px] text-primary/60 font-medium mt-1">
+                    Margem: {{ ((product.mlSellingPrice - product.purchasePrice) / product.mlSellingPrice * 100).toFixed(1) }}%
                   </div>
                 </div>
               </td>
@@ -247,6 +247,15 @@ const generateSlug = () => {
                 <div class="text-[10px] text-green-400/60 font-medium mt-1">
                   Margem: {{ ((product.directSellingPrice - product.purchasePrice) / product.directSellingPrice * 100).toFixed(1) }}%
                 </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span 
+                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium transition-all"
+                  :class="product.isListedOnML ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-neutral/10 text-neutral border border-white/10'"
+                >
+                  <div v-if="product.isListedOnML" class="w-1 h-1 bg-green-400 rounded-full animate-pulse"></div>
+                  {{ product.isListedOnML ? 'Listado' : 'Não Listado' }}
+                </span>
               </td>
               <td class="px-6 py-4 text-right">
                 <div class="flex items-center justify-end gap-2">

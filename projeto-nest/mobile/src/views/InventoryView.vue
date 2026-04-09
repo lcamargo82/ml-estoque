@@ -38,6 +38,7 @@
               <tr>
                 <th class="sticky-col">Produto</th>
                 <th>SKU</th>
+                <th>Status</th>
                 <th>Qtd</th>
                 <th>Custo</th>
                 <th>ML</th>
@@ -48,6 +49,12 @@
               <tr v-for="item in filteredItems" :key="item.id">
                 <td class="sticky-col font-bold">{{ item.name }}</td>
                 <td><code class="sku-code">{{ item.sku }}</code></td>
+                <td>
+                  <ion-icon 
+                    :icon="item.isListedOnML ? checkmarkCircle : closeCircle" 
+                    :color="item.isListedOnML ? 'success' : 'medium'"
+                  ></ion-icon>
+                </td>
                 <td>
                   <span :class="item.quantity > 5 ? 'text-green' : 'text-danger'">
                     {{ item.quantity }}
@@ -61,21 +68,29 @@
           </table>
         </div>
       </div>
+
+      <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+        <ion-fab-button @click="router.push('/products/add')">
+          <ion-icon :icon="addOutline"></ion-icon>
+        </ion-fab-button>
+      </ion-fab>
     </ion-content>
   </ion-page>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed } from 'vue';
 import { 
   IonPage, IonHeader, IonToolbar, IonTitle, IonContent, 
-  IonButtons, IonBackButton, IonSearchbar, IonSpinner, IonButton, IonIcon
+  IonButtons, IonBackButton, IonSearchbar, IonSpinner, IonButton, IonIcon,
+  IonFab, IonFabButton, onIonViewWillEnter
 } from '@ionic/vue';
-import { refreshOutline } from 'ionicons/icons';
+import { refreshOutline, addOutline, checkmarkCircle, closeCircle } from 'ionicons/icons';
 import { useInventoryStore } from '../stores/inventory';
-import { onIonViewWillEnter } from '@ionic/vue';
+import { useRouter } from 'vue-router';
 
 const inventoryStore = useInventoryStore();
+const router = useRouter();
 const searchQuery = ref('');
 
 const fetchInventory = async () => {
