@@ -14,7 +14,7 @@ export const getTypeOrmConfig = (configService: ConfigService): DataSourceOption
   password: configService.get<string>('DATABASE_PASSWORD'),
   database: configService.get<string>('DATABASE_NAME'),
   entities: [User, Product, ProductImage, Supplier],
-  migrations: ['dist/database/migrations/*{.ts,.js}'],
+  migrations: [__dirname + '/../database/migrations/*{.ts,.js}'],
   namingStrategy: new SnakeNamingStrategy(),
   synchronize: false,
   logging: true,
@@ -28,7 +28,7 @@ const dataSourceOptions: DataSourceOptions = {
   password: process.env.DATABASE_PASSWORD || 'password',
   database: process.env.DATABASE_NAME || 'nest_db',
   entities: [User, Product, ProductImage, Supplier],
-  migrations: ['src/database/migrations/*{.ts,.js}'],
+  migrations: [__dirname + '/../database/migrations/*{.ts,.js}'],
   namingStrategy: new SnakeNamingStrategy(),
   synchronize: false,
 };
