@@ -1,12 +1,8 @@
 import axios from 'axios';
 import { Preferences } from '@capacitor/preferences';
 
-// Endereço do Host para o Emulador Android: 10.0.2.2
-// Para iOS ou ambiente de produção, este valor deve ser alterado nas variáveis de ambiente
-const BASE_URL = 'http://10.0.2.2:3000/api/v1';
-
 const api = axios.create({
-  baseURL: BASE_URL,
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
   headers: {
     'Content-Type': 'application/json',
   },

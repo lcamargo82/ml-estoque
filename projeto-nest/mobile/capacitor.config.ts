@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'br.dev.lcamargo.mlestoque',
-  appName: 'mobile',
+  appName: 'ML Estoque',
   webDir: 'dist',
   plugins: {
     CapacitorHttp: {
