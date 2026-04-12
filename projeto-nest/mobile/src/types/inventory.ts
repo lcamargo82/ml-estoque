@@ -8,6 +8,7 @@ export interface StockItem {
   directSellingPrice: number;
   isListedOnML: boolean;
   location?: string;
+  images?: string[];
 }
 
 export interface Movement {

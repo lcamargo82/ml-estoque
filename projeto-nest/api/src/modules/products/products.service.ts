@@ -5,25 +5,59 @@ import { Product } from '@modules/products/entities/product.entity';
 import { ProductImage } from '@modules/products/entities/product-image.entity';
 import { CreateProductDto, UpdateProductDto } from '@modules/products/dto/product.dto';
 import slugify from 'slugify';
+import { saveBase64Image } from '@common/utils/file-upload.utils';
+import { join } from 'path';
 
 @Injectable()
 export class ProductsService {
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
+    @InjectRepository(ProductImage)
+    private readonly productImageRepository: Repository<ProductImage>,
   ) {}
+
+  private async processImages(images: string[]): Promise<any[]> {
+    if (!images || images.length === 0) return [];
+
+    const uploadDir = join(process.cwd(), 'public', 'uploads');
+    const baseUrl = process.env.API_URL || 'http://192.168.15.13:3000';
+
+    const processed = [];
+    for (let i = 0; i < images.length; i++) {
+      const img = images[i];
+      if (img.startsWith('data:image')) {
+        try {
+          const fileName = await saveBase64Image(img, uploadDir);
+          processed.push({ url: `${baseUrl}/uploads/${fileName}`, index: i });
+        } catch (err) {
+          console.error('Failed to save image', err);
+          processed.push({ url: img, index: i });
+        }
+      } else {
+        processed.push({ url: img, index: i });
+      }
+    }
+    return processed;
+  }
 
   async create(createProductDto: CreateProductDto, username: string): Promise<Product> {
     const { images, ...productData } = createProductDto;
+    
+    // Normalize empty strings to null for UUID fields
+    if (productData.supplierId === '') {
+      productData.supplierId = null;
+    }
 
     const slug = productData.slug || slugify(productData.name, { lower: true });
+    const processedImages = await this.processImages(images || []);
 
     const product = this.productRepository.create({
       ...productData,
       slug,
       createdBy: username,
       updatedBy: username,
-      images: images?.map((url, index) => ({ url, index } as any)) || [],
+      images: processedImages as any,
     });
 
     return this.productRepository.save(product);
@@ -51,6 +85,11 @@ export class ProductsService {
   async update(id: string, updateProductDto: UpdateProductDto, username: string): Promise<Product> {
     const product = await this.findOne(id);
     const { images, ...productData } = updateProductDto;
+    
+    // Normalize empty strings to null for UUID fields
+    if (productData.supplierId === '') {
+      productData.supplierId = null;
+    }
 
     // Handle slug auto-generation if name changes and slug is not provided
     if (productData.name && !productData.slug) {
@@ -63,9 +102,12 @@ export class ProductsService {
     });
 
     if (images) {
-      // For simplicity, we replace images. 
-      // A more robust solution would diff them, but cascaded replace works for MVP.
-      product.images = images.map((url, index) => ({ url, index } as any));
+      // Deletar imagens antigas explicitamente para evitar erro 500 (órfãos com restrição NOT NULL)
+      await this.productImageRepository.delete({ productId: id });
+
+      // Processa as novas imagens (converte Base64 se necessário)
+      const processedImages = await this.processImages(images);
+      product.images = processedImages as any;
     }
 
     return this.productRepository.save(product);

@@ -26,8 +26,13 @@ import { getTypeOrmConfig } from '@config/typeorm.config';
     ProductsModule,
     SuppliersModule,
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'uploads'),
+      rootPath: join(process.cwd(), 'public', 'uploads'),
       serveRoot: '/uploads',
+      serveStaticOptions: {
+        setHeaders: (res) => {
+          res.set('Access-Control-Allow-Origin', '*');
+        },
+      },
     }),
   ],
 })

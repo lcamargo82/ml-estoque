@@ -16,7 +16,7 @@ export const getTypeOrmConfig = (configService: ConfigService): DataSourceOption
   entities: [User, Product, ProductImage, Supplier],
   migrations: [__dirname + '/../database/migrations/*{.ts,.js}'],
   namingStrategy: new SnakeNamingStrategy(),
-  synchronize: false,
+  synchronize: true,
   logging: true,
 });
 
@@ -30,7 +30,7 @@ const dataSourceOptions: DataSourceOptions = {
   entities: [User, Product, ProductImage, Supplier],
   migrations: [__dirname + '/../database/migrations/*{.ts,.js}'],
   namingStrategy: new SnakeNamingStrategy(),
-  synchronize: false,
+  synchronize: true,
 };
 
 export default new DataSource(dataSourceOptions);

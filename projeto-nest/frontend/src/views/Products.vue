@@ -86,16 +86,36 @@ const openEditModal = (product: Product) => {
 
 const handleSave = async () => {
   try {
+    // Criar um payload limpo apenas com os campos que o DTO espera
+    const payload: any = {
+      name: currentProduct.value.name,
+      sku: currentProduct.value.sku,
+      slug: currentProduct.value.slug,
+      quantity: Number(currentProduct.value.quantity),
+      purchasePrice: Number(currentProduct.value.purchasePrice),
+      mlSellingPrice: Number(currentProduct.value.mlSellingPrice),
+      directSellingPrice: Number(currentProduct.value.directSellingPrice),
+      isListedOnML: !!currentProduct.value.isListedOnML,
+      supplierId: currentProduct.value.supplierId || null,
+      // Garantir que imagens sejam APENAS strings (URLs)
+      images: (currentProduct.value.images || [])
+        .map((img: any) => typeof img === 'string' ? img : img.url)
+        .filter((url: string) => typeof url === 'string' && url.trim() !== '')
+    };
+
+    console.log('Enviando Payload Web:', payload);
+
     if (isEditing.value && currentProduct.value.id) {
-      await ProductRepository.update(currentProduct.value.id, currentProduct.value);
+      await ProductRepository.update(currentProduct.value.id, payload);
       toast.success('Produto atualizado com sucesso');
     } else {
-      await ProductRepository.create(currentProduct.value);
+      await ProductRepository.create(payload);
       toast.success('Produto criado com sucesso');
     }
     isModalOpen.value = false;
     fetchProducts();
   } catch (error: any) {
+    console.error('Erro ao salvar:', error.response?.data);
     const errorMsg = error.response?.data?.message;
     toast.error(Array.isArray(errorMsg) ? errorMsg[0] : (errorMsg || 'Erro ao salvar produto'));
   }

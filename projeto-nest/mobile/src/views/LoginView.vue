@@ -68,7 +68,7 @@
 import { reactive, onMounted } from 'vue';
 import { 
   IonPage, IonContent, IonItem, IonLabel, IonInput, IonButton, 
-  IonIcon, IonSpinner, toastController 
+  IonIcon, IonSpinner, toastController, alertController
 } from '@ionic/vue';
 import { cubeOutline, fingerPrintOutline } from 'ionicons/icons';
 import { useAuthStore } from '@/stores/auth';
@@ -95,7 +95,32 @@ const handleLogin = async () => {
 
   const success = await authStore.login(form);
   if (success) {
-    router.push('/home');
+    // Verificar se podemos vincular biometria
+    if (authStore.biometricsAvailable && !authStore.biometricsLinked) {
+      const alert = await alertController.create({
+        header: 'Ativar Biometria?',
+        message: 'Deseja usar sua digital para acessar o app rapidamente nas próximas vezes?',
+        buttons: [
+          {
+            text: 'Agora não',
+            role: 'cancel',
+            handler: () => {
+              router.push('/home');
+            }
+          },
+          {
+            text: 'Sim, ativar',
+            handler: async () => {
+              await authStore.saveBiometricCredentials(form.email, form.password);
+              router.push('/home');
+            }
+          }
+        ]
+      });
+      await alert.present();
+    } else {
+      router.push('/home');
+    }
   }
 };
 
@@ -105,9 +130,10 @@ const handleBiometricLogin = async () => {
     router.push('/home');
   } else {
     const toast = await toastController.create({
-      message: 'Falha na autenticação biométrica',
-      duration: 2000,
-      color: 'danger'
+      message: 'Falha na autenticação biométrica ou vínculo não encontrado',
+      duration: 2500,
+      color: 'danger',
+      position: 'bottom'
     });
     await toast.present();
   }
@@ -115,9 +141,9 @@ const handleBiometricLogin = async () => {
 
 onMounted(async () => {
   await authStore.initialize();
-  // Se já estiver autenticado e houver token, tenta biometria auto
-  if (authStore.biometricsAvailable && authStore.token) {
-     // handleBiometricLogin(); // Opcional: auto-prompt
+  // Se biometria estiver vinculada, tenta prompt automático (opcional)
+  if (authStore.biometricsAvailable && authStore.biometricsLinked) {
+     // handleBiometricLogin(); 
   }
 });
 </script>

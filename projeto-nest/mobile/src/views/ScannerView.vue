@@ -1,11 +1,11 @@
 <template>
   <ion-page>
-    <ion-header>
+    <ion-header class="ion-no-border">
       <ion-toolbar color="primary">
         <ion-buttons slot="start">
-          <ion-back-button default-href="/home"></ion-back-button>
+          <ion-menu-button></ion-menu-button>
         </ion-buttons>
-        <ion-title>Leitor QR/Code</ion-title>
+        <ion-title>Leitor de Código</ion-title>
       </ion-toolbar>
     </ion-header>
 
@@ -32,8 +32,8 @@
 <script setup lang="ts">
 import { 
   IonPage, IonHeader, IonToolbar, IonTitle, IonContent, 
-  IonButton, IonButtons, IonBackButton, IonInput, IonItem,
-  alertController
+  IonButton, IonButtons, IonMenuButton, IonInput, IonItem,
+  alertController, IonSpinner, toastController
 } from '@ionic/vue';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';

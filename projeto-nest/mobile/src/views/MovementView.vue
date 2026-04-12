@@ -1,9 +1,9 @@
 <template>
   <ion-page>
-    <ion-header>
+    <ion-header class="ion-no-border">
       <ion-toolbar color="primary">
         <ion-buttons slot="start">
-          <ion-back-button default-href="/home"></ion-back-button>
+          <ion-menu-button></ion-menu-button>
         </ion-buttons>
         <ion-title>Movimentação</ion-title>
       </ion-toolbar>
@@ -45,8 +45,8 @@
 <script setup lang="ts">
 import { 
   IonPage, IonHeader, IonToolbar, IonTitle, IonContent, 
-  IonList, IonItem, IonSelect, IonSelectOption, IonInput,
-  IonButton, IonButtons, IonBackButton, alertController
+  IonList, IonItem, IonLabel, IonSelect, IonSelectOption,
+  IonInput, IonButton, IonButtons, IonMenuButton, alertController
 } from '@ionic/vue';
 import { reactive, computed } from 'vue';
 import { useInventoryStore } from '../stores/inventory';
