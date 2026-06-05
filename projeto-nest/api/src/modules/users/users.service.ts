@@ -37,6 +37,22 @@ export class UsersService {
     return this.userRepository.findOne({ where: { id } });
   }
 
+  async findByResetToken(token: string): Promise<User | undefined> {
+    return this.userRepository.findOne({
+      where: { resetPasswordToken: token },
+      select: [
+        'id',
+        'email',
+        'name',
+        'password',
+        'role',
+        'isActive',
+        'resetPasswordToken',
+        'resetPasswordExpires',
+      ],
+    });
+  }
+
   async findAll(): Promise<User[]> {
     return this.userRepository.find({
       order: { createdAt: 'DESC' },

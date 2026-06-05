@@ -22,7 +22,12 @@
         </div>
 
         <div>
-          <label for="password" class="block text-sm font-medium text-white mb-2">Senha</label>
+          <div class="flex items-center justify-between mb-2">
+            <label for="password" class="block text-sm font-medium text-white">Senha</label>
+            <router-link to="/forgot-password" class="text-xs text-primary hover:underline">
+              Esqueci minha senha
+            </router-link>
+          </div>
           <input 
             id="password"
             v-model="form.password"

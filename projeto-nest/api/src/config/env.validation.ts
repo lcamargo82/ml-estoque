@@ -12,4 +12,10 @@ export const validationSchema = Joi.object({
   DATABASE_NAME: Joi.string().required(),
   JWT_SECRET: Joi.string().required(),
   JWT_EXPIRATION: Joi.string().default('3600s'),
+  SMTP_HOST: Joi.string().required(),
+  SMTP_PORT: Joi.number().default(465),
+  SMTP_USER: Joi.string().required(),
+  SMTP_PASSWORD: Joi.string().required(),
+  SMTP_FROM: Joi.string().required(),
+  FRONTEND_URL: Joi.string().default('http://localhost:5173'),
 });
