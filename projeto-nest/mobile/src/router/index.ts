@@ -32,6 +32,11 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('../views/ResetPasswordView.vue'),
     meta: { public: true }
   },
+  { path: '/forgot-password', name: 'ForgotPassword', component: () => import('../views/ForgotPasswordView.vue'), meta: { public: true } },
+  { path: '/suppliers', name: 'Suppliers', component: () => import('../views/SuppliersView.vue') },
+  { path: '/suppliers/new', name: 'NewSupplier', component: () => import('../views/SupplierFormView.vue') },
+  { path: '/suppliers/:id/edit', name: 'EditSupplier', component: () => import('../views/SupplierFormView.vue') },
+  { path: '/profile', name: 'Profile', component: () => import('../views/ProfileView.vue') },
   {
     path: '/home',
     name: 'Home',
@@ -52,6 +57,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'AddProduct',
     component: () => import('../views/AddProductView.vue')
   },
+  { path: '/products/:id/edit', name: 'EditProduct', component: () => import('../views/AddProductView.vue') },
   {
     path: '/movement',
     name: 'Movement',

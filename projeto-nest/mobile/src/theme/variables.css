@@ -1,4 +1,14 @@
 :root {
+  --vivid-bg: #171118;
+  --vivid-surface-low: #201921;
+  --vivid-surface: #241d25;
+  --vivid-surface-high: #3a323a;
+  --vivid-text: #ecdfe9;
+  --vivid-muted: #d2c1d2;
+  --vivid-outline: #4f4350;
+  --vivid-primary: #a951c6;
+  --vivid-primary-bright: #efb0ff;
+  --vivid-tertiary: #d0cb56;
   /** primary **/
   --ion-color-primary: #a951c6;
   --ion-color-primary-rgb: 169, 81, 198;
@@ -38,6 +48,21 @@
   --ion-color-danger: #ff4961;
   --ion-color-success: #2fdf75;
 }
+
+* { box-sizing: border-box; }
+body, input, button { font-family: "Hanken Grotesk", Inter, system-ui, sans-serif; }
+.vivid-page { --background: var(--vivid-bg); }
+.page-shell { min-height: 100%; padding: 0 16px 108px; color: var(--vivid-text); }
+.vivid-card { background: var(--vivid-surface); border: 1px solid var(--vivid-outline); border-radius: 16px; }
+.tech-label { font-family: "JetBrains Mono", monospace; letter-spacing: .06em; text-transform: uppercase; }
+.app-header { height: calc(62px + env(safe-area-inset-top)); padding: env(safe-area-inset-top) 16px 0; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--vivid-outline); background:var(--vivid-bg); color:var(--vivid-text); }
+.app-brand { display:flex; align-items:center; gap:10px; font-size:20px; }.app-brand ion-icon{color:var(--vivid-primary-bright);font-size:24px}
+.icon-button { border:0; background:transparent; color:var(--vivid-text); font-size:24px; padding:8px; }
+.bottom-nav { position:fixed; z-index:20; left:0; right:0; bottom:0; height:calc(74px + env(safe-area-inset-bottom)); padding:8px 8px env(safe-area-inset-bottom); display:grid; grid-template-columns:repeat(4,1fr); background:var(--vivid-surface); border-top:1px solid var(--vivid-outline); }
+.bottom-nav a { color:var(--vivid-muted); text-decoration:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; border-radius:12px; font-size:10px; }.bottom-nav a ion-icon{font-size:22px}.bottom-nav a.active{background:#684179;color:var(--vivid-text)}
+.app-field { display:grid; gap:8px; margin-bottom:16px; color:var(--vivid-muted); }.app-field__label{font-family:"JetBrains Mono",monospace;font-size:12px;font-weight:700}.app-field__control{display:flex;align-items:center;gap:10px;background:#0f172a;border:1px solid var(--vivid-outline);border-radius:12px;padding:0 14px;height:54px}.app-field__control:focus-within{border-color:var(--vivid-primary-bright);box-shadow:0 0 0 2px rgba(239,176,255,.12)}.app-field__control input{min-width:0;flex:1;border:0;outline:0;background:transparent;color:var(--vivid-text);font-size:15px}.app-field__control button{border:0;background:transparent;color:var(--vivid-muted);font-size:22px;padding:8px}
+.primary-button,.secondary-button{width:100%;height:54px;border-radius:12px;font-weight:800;font-size:16px}.primary-button{border:0;background:var(--vivid-primary);color:white;box-shadow:0 8px 24px rgba(169,81,198,.28)}.secondary-button{border:1px solid var(--vivid-primary);background:transparent;color:var(--vivid-primary-bright)}
+.app-state{text-align:center;padding:48px 20px;color:var(--vivid-muted)}.app-state h3{color:var(--vivid-text)}
 
   /*
    * iOS Dark Theme

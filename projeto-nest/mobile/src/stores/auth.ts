@@ -173,6 +173,27 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
+    async updateProfile(profile: { name: string; email: string }) {
+      const response = await api.patch('/auth/profile', profile);
+      this.user = response.data;
+      return response.data;
+    },
+
+    async changePassword(credentials: { currentPassword: string; newPassword: string }) {
+      const response = await api.post('/auth/change-password', credentials);
+      return response.data;
+    },
+
+    async requestPasswordReset(email: string) {
+      const response = await api.post('/auth/forgot-password', { email });
+      return response.data;
+    },
+
+    async resetPassword(token: string, password: string) {
+      const response = await api.post('/auth/reset-password', { token, password });
+      return response.data;
+    },
+
     async logout() {
       this.user = null;
       this.token = '';

@@ -72,6 +72,20 @@ export const useInventoryStore = defineStore('inventory', {
       }
     },
 
+    async updateProduct(id: string, productData: any) {
+      const response = await api.patch(`/products/${id}`, productData);
+      const index = this.items.findIndex(item => item.id === id);
+      if (index >= 0) this.items[index] = response.data;
+      await Preferences.set({ key: 'items', value: JSON.stringify(this.items) });
+      return response.data;
+    },
+
+    async deleteProduct(id: string) {
+      await api.delete(`/products/${id}`);
+      this.items = this.items.filter(item => item.id !== id);
+      await Preferences.set({ key: 'items', value: JSON.stringify(this.items) });
+    },
+
     async addMovement(movementData: Omit<Movement, 'id' | 'timestamp' | 'synced'>) {
       const newMovement: Movement = {
         ...movementData,

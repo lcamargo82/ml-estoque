@@ -1,14 +1,3 @@
-<template>
-  <ion-page>
-    <ion-content class="ion-padding">
-      <div class="ion-padding">
-        <h1>Redefinir senha</h1>
-        <p>Informe uma nova senha para continuar.</p>
-      </div>
-    </ion-content>
-  </ion-page>
-</template>
-
-<script setup lang="ts">
-import { IonContent, IonPage } from '@ionic/vue';
-</script>
+<template><ion-page><AppHeader title="Nova Senha" back /><ion-content class="vivid-page"><div class="auth-page"><h1>Defina sua nova senha</h1><PasswordField v-model="password" label="Nova senha" /><PasswordField v-model="confirmation" label="Confirmar nova senha" /><button class="primary-button" @click="submit">Alterar senha</button></div></ion-content></ion-page></template>
+<script setup lang="ts">import { ref } from 'vue'; import { IonPage,IonContent,toastController } from '@ionic/vue'; import { useRoute,useRouter } from 'vue-router'; import AppHeader from '@/components/AppHeader.vue'; import PasswordField from '@/components/PasswordField.vue'; import { useAuthStore } from '@/stores/auth'; const password=ref(''),confirmation=ref(''),route=useRoute(),router=useRouter(),store=useAuthStore();const notify=async(message:string,color:string)=>{const t=await toastController.create({message,color,duration:2500});t.present()};const submit=async()=>{const token=String(route.query.token||'');if(!token)return notify('Token ausente','danger');if(password.value.length<6||password.value!==confirmation.value)return notify('Confira as senhas informadas','warning');try{await store.resetPassword(token,password.value);await notify('Senha alterada com sucesso','success');router.replace('/login')}catch{return notify('Link inválido ou expirado','danger')}};</script>
+<style scoped>.auth-page{padding:40px 22px;color:var(--vivid-text)}</style>
