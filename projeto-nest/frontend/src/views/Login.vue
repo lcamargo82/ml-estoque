@@ -12,31 +12,43 @@
         <div>
           <label for="email" class="block text-sm font-medium text-white mb-2">E-mail</label>
           <div class="relative">
-          <input 
-            id="email"
-            v-model="form.email"
-            type="email" 
-            placeholder="exemplo@ml.com"
-            class="input-field"
-            required
-          />
+            <input 
+              id="email"
+              v-model="form.email"
+              type="email" 
+              placeholder="exemplo@ml.com"
+              class="input-field"
+              required
+            />
+          </div>
         </div>
 
         <div>
-          <div class="flex items-center justify-between mb-2">
-            <label for="password" class="block text-sm font-medium text-white">Senha</label>
-            <router-link to="/forgot-password" class="text-xs text-primary hover:underline">
+          <label for="password" class="block text-sm font-medium text-white mb-2">Senha</label>
+          <div class="relative">
+            <input 
+              id="password"
+              v-model="form.password"
+              :type="passwordVisible ? 'text' : 'password'"
+              placeholder="••••••••"
+              class="input-field pr-12"
+              required
+            />
+            <button 
+              type="button" 
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-neutral hover:text-white transition-colors duration-200" 
+              :aria-label="passwordVisible ? 'Ocultar senha' : 'Mostrar senha'" 
+              @click="passwordVisible = !passwordVisible"
+            >
+              <EyeOff v-if="passwordVisible" class="w-5 h-5"/>
+              <Eye v-else class="w-5 h-5"/>
+            </button>
+          </div>
+          <div class="mt-2 text-right">
+            <router-link to="/forgot-password" class="text-xs text-primary hover:underline transition-colors duration-200">
               Esqueci minha senha
             </router-link>
           </div>
-          <input 
-            id="password"
-            v-model="form.password"
-            :type="passwordVisible ? 'text' : 'password'"
-            placeholder="••••••••"
-            class="input-field"
-            required
-          /><button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-neutral hover:text-white" :aria-label="passwordVisible ? 'Ocultar senha' : 'Mostrar senha'" @click="passwordVisible = !passwordVisible"><EyeOff v-if="passwordVisible" class="w-5 h-5"/><Eye v-else class="w-5 h-5"/></button></div>
         </div>
 
         <div v-if="authStore.error" class="text-red-400 text-sm bg-red-400/10 p-3 rounded-lg border border-red-400/20">
