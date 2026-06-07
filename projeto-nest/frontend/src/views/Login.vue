@@ -11,6 +11,7 @@
       <form @submit.prevent="handleLogin" class="space-y-6">
         <div>
           <label for="email" class="block text-sm font-medium text-white mb-2">E-mail</label>
+          <div class="relative">
           <input 
             id="email"
             v-model="form.email"
@@ -31,11 +32,11 @@
           <input 
             id="password"
             v-model="form.password"
-            type="password" 
+            :type="passwordVisible ? 'text' : 'password'"
             placeholder="••••••••"
             class="input-field"
             required
-          />
+          /><button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-neutral hover:text-white" :aria-label="passwordVisible ? 'Ocultar senha' : 'Mostrar senha'" @click="passwordVisible = !passwordVisible"><EyeOff v-if="passwordVisible" class="w-5 h-5"/><Eye v-else class="w-5 h-5"/></button></div>
         </div>
 
         <div v-if="authStore.error" class="text-red-400 text-sm bg-red-400/10 p-3 rounded-lg border border-red-400/20">
@@ -62,12 +63,14 @@
 </template>
 
 <script setup lang="ts">
-import { reactive } from 'vue';
+import { reactive, ref } from 'vue';
+import { Eye, EyeOff } from 'lucide-vue-next';
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
 
 const authStore = useAuthStore();
 const router = useRouter();
+const passwordVisible = ref(false);
 
 const form = reactive({
   email: '',
