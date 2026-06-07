@@ -21,7 +21,10 @@ export class MailService {
 
   async sendPasswordResetEmail(email: string, name: string, token: string) {
     const frontendUrl = this.configService.get<string>('FRONTEND_URL');
-    const resetLink = `${frontendUrl}/reset-password?token=${token}`;
+    const mobileResetUrl = this.configService.get<string>('MOBILE_RESET_URL', 'mlestoque://reset-password');
+    const encodedToken = encodeURIComponent(token);
+    const resetLink = `${frontendUrl}/reset-password?token=${encodedToken}`;
+    const mobileResetLink = `${mobileResetUrl}?token=${encodedToken}`;
     const mailFrom = this.configService.get<string>('SMTP_FROM');
 
     const htmlContent = `
@@ -98,10 +101,11 @@ export class MailService {
           <div class="content">
             <p>Olá, ${name},</p>
             <p>Recebemos uma solicitação para redefinir a senha da sua conta no sistema <strong>ML Estoque</strong>.</p>
-            <p>Para prosseguir com a redefinição de sua senha, clique no botão abaixo:</p>
+            <p>Para prosseguir no aplicativo, clique no botão abaixo:</p>
             <div class="button-container">
-              <a href="${resetLink}" class="button" target="_blank">Redefinir Minha Senha</a>
+              <a href="${mobileResetLink}" class="button" target="_blank">Abrir no Aplicativo</a>
             </div>
+            <p>Se o aplicativo não abrir, <a href="${resetLink}" target="_blank">continue pela versão web</a>.</p>
             <p>Se você não fez essa solicitação, por favor desconsidere este e-mail. A sua senha atual continuará ativa.</p>
             <p>Este link expira em 1 hora.</p>
           </div>
@@ -118,7 +122,7 @@ export class MailService {
         from: mailFrom,
         to: email,
         subject: 'Recuperação de Senha - ML Estoque',
-        text: `Olá ${name}, para redefinir sua senha acesse o link: ${resetLink}`,
+        text: `Olá ${name}, redefina sua senha no aplicativo: ${mobileResetLink}. Alternativa web: ${resetLink}`,
         html: htmlContent,
       });
       this.logger.log(`E-mail de recuperação de senha enviado com sucesso para ${email}`);

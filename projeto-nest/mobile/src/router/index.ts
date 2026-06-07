@@ -2,6 +2,19 @@ import { createRouter, createWebHashHistory } from '@ionic/vue-router';
 import { RouteRecordRaw } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 
+export const resetRouteFromUrl = (rawUrl: string) => {
+  try {
+    const url = new URL(rawUrl);
+    const token = url.searchParams.get('token');
+    if (url.protocol !== 'mlestoque:' || url.hostname !== 'reset-password' || !token) {
+      return null;
+    }
+    return { path: '/reset-password', query: { token } };
+  } catch {
+    return null;
+  }
+};
+
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
@@ -11,6 +24,12 @@ const routes: Array<RouteRecordRaw> = [
     path: '/login',
     name: 'Login',
     component: () => import('../views/LoginView.vue'),
+    meta: { public: true }
+  },
+  {
+    path: '/reset-password',
+    name: 'ResetPassword',
+    component: () => import('../views/ResetPasswordView.vue'),
     meta: { public: true }
   },
   {

@@ -70,6 +70,8 @@ import { SyncService } from './services/sync.service';
 import { onMounted } from 'vue';
 import { useAuthStore } from './stores/auth';
 import { useRouter } from 'vue-router';
+import { App as CapacitorApp } from '@capacitor/app';
+import { resetRouteFromUrl } from './router';
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -82,6 +84,12 @@ const handleLogout = async () => {
 
 onMounted(() => {
   SyncService.init();
+  CapacitorApp.addListener('appUrlOpen', ({ url }) => {
+    const route = resetRouteFromUrl(url);
+    if (route) {
+      router.push(route);
+    }
+  });
 });
 </script>
 
