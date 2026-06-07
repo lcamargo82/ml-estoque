@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { 
   Plus, 
   Search, 
@@ -9,7 +9,9 @@ import {
   Trash2, 
   ExternalLink,
   Package,
-  AlertCircle
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-vue-next';
 import { ProductRepository } from '@/repositories/ProductRepository';
 import type { Product } from '@/types';
@@ -38,6 +40,23 @@ const currentProduct = ref<Partial<Product>>({
   mlSellingPrice: 0,
   directSellingPrice: 0,
   isListedOnML: false
+});
+
+const currentPage = ref(1);
+const itemsPerPage = ref(10);
+
+const totalPages = computed(() => {
+  return Math.ceil(filteredProducts.value.length / itemsPerPage.value) || 1;
+});
+
+const paginatedProducts = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value;
+  const end = start + itemsPerPage.value;
+  return filteredProducts.value.slice(start, end);
+});
+
+watch([searchQuery, itemsPerPage], () => {
+  currentPage.value = 1;
 });
 
 const fetchProducts = async () => {
@@ -208,88 +227,129 @@ const generateSlug = () => {
         <p class="text-neutral mt-1 max-w-xs">Tente ajustar seus filtros ou adicione um novo produto ao catálogo.</p>
       </div>
 
-      <div v-else class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
-          <thead>
-            <tr class="border-b border-white/5 bg-white/5">
-              <th class="px-6 py-4 text-xs font-semibold text-neutral uppercase tracking-wider">Produto</th>
-              <th class="px-6 py-4 text-xs font-semibold text-neutral uppercase tracking-wider text-center">Estoque</th>
-              <th class="px-6 py-4 text-xs font-semibold text-neutral uppercase tracking-wider">Custo</th>
-              <th class="px-6 py-4 text-xs font-semibold text-neutral uppercase tracking-wider">Preço ML</th>
-              <th class="px-6 py-4 text-xs font-semibold text-neutral uppercase tracking-wider">Venda Direta</th>
-              <th class="px-6 py-4 text-xs font-semibold text-neutral uppercase tracking-wider">Status</th>
-              <th class="px-6 py-4 text-xs font-semibold text-neutral uppercase tracking-wider text-right">Ações</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-white/5">
-            <tr v-for="product in filteredProducts" :key="product.id" class="hover:bg-white/[0.02] transition-colors group">
-              <td class="px-6 py-4">
-                <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 bg-white/5 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Package v-if="!product.images?.length" class="w-5 h-5 text-neutral" />
-                    <img v-else :src="product.images[0].url" class="w-full h-full object-cover rounded-lg" />
-                  </div>
-                  <div>
-                    <div class="font-medium text-white group-hover:text-primary transition-colors">{{ product.name }}</div>
-                    <div class="flex items-center gap-2 mt-0.5">
-                      <code class="text-[10px] bg-white/5 px-1.5 py-0.5 rounded text-neutral border border-white/10">{{ product.sku }}</code>
-                      <span class="text-[10px] text-neutral/40">|</span>
-                      <span class="text-[10px] text-neutral italic">{{ product.slug }}</span>
+      <div v-else>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-white/5 bg-white/5">
+                <th class="px-6 py-4 text-xs font-semibold text-neutral uppercase tracking-wider">Produto</th>
+                <th class="px-6 py-4 text-xs font-semibold text-neutral uppercase tracking-wider text-center">Estoque</th>
+                <th class="px-6 py-4 text-xs font-semibold text-neutral uppercase tracking-wider">Custo</th>
+                <th class="px-6 py-4 text-xs font-semibold text-neutral uppercase tracking-wider">Preço ML</th>
+                <th class="px-6 py-4 text-xs font-semibold text-neutral uppercase tracking-wider">Venda Direta</th>
+                <th class="px-6 py-4 text-xs font-semibold text-neutral uppercase tracking-wider">Status</th>
+                <th class="px-6 py-4 text-xs font-semibold text-neutral uppercase tracking-wider text-right">Ações</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5">
+              <tr v-for="product in paginatedProducts" :key="product.id" class="hover:bg-white/[0.02] transition-colors group">
+                <td class="px-6 py-4">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-white/5 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <Package v-if="!product.images?.length" class="w-5 h-5 text-neutral" />
+                      <img v-else :src="product.images[0].url" class="w-full h-full object-cover rounded-lg" />
+                    </div>
+                    <div>
+                      <div class="font-medium text-white group-hover:text-primary transition-colors">{{ product.name }}</div>
+                      <div class="flex items-center gap-2 mt-0.5">
+                        <code class="text-[10px] bg-white/5 px-1.5 py-0.5 rounded text-neutral border border-white/10">{{ product.sku }}</code>
+                        <span class="text-[10px] text-neutral/40">|</span>
+                        <span class="text-[10px] text-neutral italic">{{ product.slug }}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </td>
-              <td class="px-6 py-4 text-center">
-                <span 
-                  class="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                  :class="[
-                    product.quantity > 5 ? 'bg-green-500/10 text-green-400' : 
-                    product.quantity > 0 ? 'bg-yellow-500/10 text-yellow-400' : 
-                    'bg-red-500/10 text-red-400'
-                  ]"
-                >
-                  {{ product.quantity }} un
-                </span>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-neutral text-sm">R$ {{ product.purchasePrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) }}</div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="flex flex-col">
-                  <div class="text-primary font-bold">R$ {{ product.mlSellingPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) }}</div>
-                  <div class="text-[10px] text-primary/60 font-medium mt-1">
-                    Margem: {{ ((product.mlSellingPrice - product.purchasePrice) / product.mlSellingPrice * 100).toFixed(1) }}%
+                </td>
+                <td class="px-6 py-4 text-center">
+                  <span 
+                    class="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                    :class="[
+                      product.quantity > 5 ? 'bg-green-500/10 text-green-400' : 
+                      product.quantity > 0 ? 'bg-yellow-500/10 text-yellow-400' : 
+                      'bg-red-500/10 text-red-400'
+                    ]"
+                  >
+                    {{ product.quantity }} un
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-neutral text-sm">R$ {{ product.purchasePrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex flex-col">
+                    <div class="text-primary font-bold">R$ {{ product.mlSellingPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) }}</div>
+                    <div class="text-[10px] text-primary/60 font-medium mt-1">
+                      Margem: {{ ((product.mlSellingPrice - product.purchasePrice) / product.mlSellingPrice * 100).toFixed(1) }}%
+                    </div>
                   </div>
-                </div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm">
-                <div class="text-white font-medium">R$ {{ product.directSellingPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) }}</div>
-                <div class="text-[10px] text-green-400/60 font-medium mt-1">
-                  Margem: {{ ((product.directSellingPrice - product.purchasePrice) / product.directSellingPrice * 100).toFixed(1) }}%
-                </div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <span 
-                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium transition-all"
-                  :class="product.isListedOnML ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-neutral/10 text-neutral border border-white/10'"
-                >
-                  <div v-if="product.isListedOnML" class="w-1 h-1 bg-green-400 rounded-full animate-pulse"></div>
-                  {{ product.isListedOnML ? 'Listado' : 'Não Listado' }}
-                </span>
-              </td>
-              <td class="px-6 py-4 text-right">
-                <div class="flex items-center justify-end gap-2">
-                  <button @click="openEditModal(product)" class="p-2 text-neutral hover:text-white hover:bg-white/5 rounded-lg transition-all">
-                    <Edit2 class="w-4 h-4" />
-                  </button>
-                  <button @click="confirmDelete(product.id)" class="p-2 text-neutral hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all">
-                    <Trash2 class="w-4 h-4" />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                  <div class="text-white font-medium">R$ {{ product.directSellingPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) }}</div>
+                  <div class="text-[10px] text-green-400/60 font-medium mt-1">
+                    Margem: {{ ((product.directSellingPrice - product.purchasePrice) / product.directSellingPrice * 100).toFixed(1) }}%
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span 
+                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium transition-all"
+                    :class="product.isListedOnML ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-neutral/10 text-neutral border border-white/10'"
+                  >
+                    <div v-if="product.isListedOnML" class="w-1 h-1 bg-green-400 rounded-full animate-pulse"></div>
+                    {{ product.isListedOnML ? 'Listado' : 'Não Listado' }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 text-right">
+                  <div class="flex items-center justify-end gap-2">
+                    <button @click="openEditModal(product)" class="p-2 text-neutral hover:text-white hover:bg-white/5 rounded-lg transition-all">
+                      <Edit2 class="w-4 h-4" />
+                    </button>
+                    <button @click="confirmDelete(product.id)" class="p-2 text-neutral hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all">
+                      <Trash2 class="w-4 h-4" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination Bar -->
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t border-white/5 bg-white/[0.02] text-sm text-neutral">
+          <div class="flex items-center gap-4">
+            <span class="text-xs">
+              Exibindo {{ Math.min(filteredProducts.length, (currentPage - 1) * itemsPerPage + 1) }}-{{ Math.min(filteredProducts.length, currentPage * itemsPerPage) }} de {{ filteredProducts.length }} produtos
+            </span>
+            <div class="flex items-center gap-2">
+              <span class="text-xs">Exibir:</span>
+              <select 
+                v-model="itemsPerPage" 
+                class="bg-background border border-white/10 rounded-lg py-1 px-2 text-white text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all appearance-none cursor-pointer"
+              >
+                <option :value="5">5</option>
+                <option :value="10">10</option>
+                <option :value="20">20</option>
+                <option :value="50">50</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="flex items-center gap-2">
+            <button 
+              @click="currentPage = Math.max(1, currentPage - 1)" 
+              :disabled="currentPage === 1"
+              class="p-2 rounded-lg bg-background border border-white/10 text-neutral hover:text-white hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-background disabled:hover:text-neutral transition-all"
+            >
+              <ChevronLeft class="w-4 h-4" />
+            </button>
+            <span class="text-xs px-2 font-medium">Página {{ currentPage }} de {{ totalPages }}</span>
+            <button 
+              @click="currentPage = Math.min(totalPages, currentPage + 1)" 
+              :disabled="currentPage === totalPages"
+              class="p-2 rounded-lg bg-background border border-white/10 text-neutral hover:text-white hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-background disabled:hover:text-neutral transition-all"
+            >
+              <ChevronRight class="w-4 h-4" />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 

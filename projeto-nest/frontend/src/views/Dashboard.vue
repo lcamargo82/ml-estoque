@@ -1,13 +1,8 @@
 <template>
   <div class="p-8">
-    <div class="flex justify-between items-center mb-10">
-      <div>
-        <h2 class="text-3xl font-bold text-white tracking-tight">Dashboard</h2>
-        <p class="text-neutral mt-1">Bem-vindo de volta, <span class="text-primary font-semibold">{{ authStore.user?.name }}</span></p>
-      </div>
-      <button @click="handleLogout" class="px-4 py-2 rounded-lg bg-surface hover:bg-white/10 text-white transition-all text-sm font-medium border border-white/5">
-        Encerrar Sessão
-      </button>
+    <div class="mb-10">
+      <h2 class="text-3xl font-bold text-white tracking-tight">Dashboard</h2>
+      <p class="text-neutral mt-1">Bem-vindo de volta, <span class="text-primary font-semibold">{{ authStore.user?.name }}</span></p>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -41,13 +36,6 @@
 
 <script setup lang="ts">
 import { useAuthStore } from '@/stores/auth';
-import { useRouter } from 'vue-router';
 
 const authStore = useAuthStore();
-const router = useRouter();
-
-function handleLogout() {
-  authStore.logout();
-  router.push({ name: 'Login' });
-}
 </script>
