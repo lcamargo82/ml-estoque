@@ -125,12 +125,19 @@ const handleLogin = async () => {
 };
 
 const handleBiometricLogin = async () => {
-  const success = await authStore.loginWithBiometrics();
-  if (success) {
+  const result = await authStore.loginWithBiometrics();
+  if (result.success) {
     router.push('/home');
   } else {
+    const messages = {
+      unavailable: 'Biometria indisponível neste dispositivo',
+      'not-linked': 'Entre com sua senha para ativar a biometria',
+      cancelled: 'Autenticação biométrica cancelada',
+      'credentials-missing': 'Vínculo biométrico expirado. Entre novamente para reativar',
+      'login-failed': authStore.error || 'Não foi possível entrar com as credenciais biométricas',
+    };
     const toast = await toastController.create({
-      message: 'Falha na autenticação biométrica ou vínculo não encontrado',
+      message: messages[result.reason],
       duration: 2500,
       color: 'danger',
       position: 'bottom'
