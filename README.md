@@ -28,32 +28,116 @@ O frontend segue um padrão visual "Premium Dark" com a seguinte paleta de cores
 - **Neutra**: `#7e747d` (Cinza Urbano)
 - **Fundo**: `#0f172a` (Deep Dark)
 
-## 🛠️ Como Iniciar (Docker)
+## 🛠️ Como Iniciar
 
-Todo o ambiente é orquestrado via Docker para garantir paridade entre desenvolvimento e produção.
+Você pode rodar o ecossistema completo usando Docker ou subir os serviços individualmente em modo de desenvolvimento local para agilizar o processo de hot-reload.
 
-1.  **Clonar o repositório**
-2.  **Navegar até a pasta do projeto**:
-    ```bash
-    cd projeto-nest
-    ```
-3.  **Subir os serviços**:
-    ```bash
-    docker-compose up -d --build
-    ```
-4.  **Configurar o Banco (Migrations & Seeding)**:
-    Instale as tabelas e o usuário administrador padrão com seus produtos de exemplo:
-    ```bash
-    # 1. Criar as tabelas no banco de dados
-    docker exec -it nest_api npm run migration:run
+### Opção A: Orquestração Completa via Docker
 
-    # 2. Inserir dados iniciais (Admin e Produtos)
-    docker exec -it nest_api npm run seed
-    ```
+Todo o ambiente é configurado para rodar com paridade de produção/desenvolvimento via Docker Compose.
+
+1. **Navegar até a pasta do projeto**:
+   ```bash
+   cd projeto-nest
+   ```
+2. **Subir os serviços**:
+   ```bash
+   docker-compose up -d --build
+   ```
+3. **Configurar o Banco (Migrations & Seeding)**:
+   ```bash
+   # Criar tabelas
+   docker exec -it nest_api npm run migration:run
+
+   # Inserir dados iniciais (Admin e Produtos de exemplo)
+   docker exec -it nest_api npm run seed
+   ```
+
+---
+
+### Opção B: Desenvolvimento Local (Watch/Hot-Reload)
+
+Para desenvolvimento rápido com hot-reload ativo em todos os serviços, você pode rodar os servidores Node.js localmente.
+
+#### 1. Banco de Dados (PostgreSQL via Docker)
+Suba apenas o serviço do banco de dados para evitar a necessidade de instalar o PostgreSQL na sua máquina local:
+```bash
+cd projeto-nest
+docker-compose up -d db
+```
+
+#### 2. Backend (API NestJS)
+1. Acesse o diretório da API:
+   ```bash
+   cd projeto-nest/api
+   ```
+2. Crie o arquivo `.env` (baseado no `.env.example`) e configure a conexão com o banco local:
+   ```properties
+   DATABASE_HOST=localhost
+   DATABASE_PORT=5432
+   DATABASE_USER=user
+   DATABASE_PASSWORD=password
+   DATABASE_NAME=nest_db
+   ```
+3. Instale as dependências e inicialize:
+   ```bash
+   npm install
+   npm run migration:run
+   npm run seed        # Opcional para dados fictícios
+   npm run start:dev   # API rodará em http://localhost:3000
+   ```
+
+#### 3. Frontend (Web Vue.js 3)
+1. Acesse o diretório do frontend:
+   ```bash
+   cd ../frontend
+   ```
+2. Instale as dependências e inicie o Vite:
+   ```bash
+   npm install
+   npm run dev         # Frontend rodará em http://localhost:5173
+   ```
+
+---
+
+### 📱 Configuração do Mobile (Capacitor/Ionic)
+
+O projeto mobile é construído com Ionic + Capacitor, gerando uma pasta nativa `/android` pronta para compilação.
+
+#### 1. Ajuste de IP do Emulador/Dispositivo
+Como emuladores e aparelhos físicos não conseguem acessar a API local por `localhost`, você deve configurar o IP local de sua máquina de rede.
+
+1. Acesse o diretório mobile:
+   ```bash
+   cd ../mobile
+   ```
+2. Edite o `.env` especificando o IP local da sua máquina:
+   ```properties
+   VITE_API_URL=http://<SEU_IP_LOCAL>:3000/api/v1
+   ```
+
+#### 2. Sincronização e Abertura no Android Studio
+1. Instale as dependências e prepare o build web:
+   ```bash
+   npm install
+   npm run android:sync # Compila a web e copia os assets para a pasta nativa Android
+   ```
+2. Abra o projeto no **Android Studio**:
+   - **Via CLI (Recomendado)**:
+     ```bash
+     npx cap open android
+     ```
+   - **Via Interface do Android Studio**:
+     Selecione a opção **"Open"** e escolha a pasta:
+     `/Users/leandro/Documents/Projetos/ml_estoque/projeto-nest/mobile/android`
+3. Aguarde o término da sincronização do Gradle e clique no ícone **Run** (Play verde) para iniciar no seu emulador ou dispositivo físico conectado.
+
+---
 
 ## 🔐 Acessos Padrão
 
-- **Frontend**: [http://localhost](http://localhost) (Porta 80)
+- **Frontend (Docker)**: [http://localhost](http://localhost) (Porta 80)
+- **Frontend (Local Dev)**: [http://localhost:5173](http://localhost:5173) (Vite)
 - **API Reference**: [http://localhost:3000/reference](http://localhost:3000/reference)
 - **Logs/Metrics**: [http://localhost:9090](http://localhost:9090) (Prometheus)
 
