@@ -116,16 +116,23 @@ export class ImportExportService {
         continue; // Ignora linhas em branco ou sem SKU/Nome obrigatórios
       }
 
-      const quantity = typeof quantityVal === 'number' ? quantityVal : parseInt(quantityVal?.toString() || '0', 10) || 0;
-      const purchasePrice = typeof purchasePriceVal === 'number' ? purchasePriceVal : parseFloat(purchasePriceVal?.toString() || '0') || 0;
-      const mlSellingPrice = typeof mlSellingPriceVal === 'number' ? mlSellingPriceVal : parseFloat(mlSellingPriceVal?.toString() || '0') || 0;
-      const directSellingPrice = typeof directSellingPriceVal === 'number' ? directSellingPriceVal : parseFloat(directSellingPriceVal?.toString() || '0') || 0;
+      const hasQuantity = quantityVal !== null && quantityVal !== undefined && quantityVal !== '';
+      const hasPurchasePrice = purchasePriceVal !== null && purchasePriceVal !== undefined && purchasePriceVal !== '';
+      const hasMlSellingPrice = mlSellingPriceVal !== null && mlSellingPriceVal !== undefined && mlSellingPriceVal !== '';
+      const hasDirectSellingPrice = directSellingPriceVal !== null && directSellingPriceVal !== undefined && directSellingPriceVal !== '';
+      const hasIsListed = isListedOnMLStr !== undefined && isListedOnMLStr !== null && isListedOnMLStr !== '';
+
+      const quantity = hasQuantity ? (typeof quantityVal === 'number' ? quantityVal : parseInt(quantityVal?.toString() || '0', 10) || 0) : 0;
+      const purchasePrice = hasPurchasePrice ? (typeof purchasePriceVal === 'number' ? purchasePriceVal : parseFloat(purchasePriceVal?.toString() || '0') || 0) : 0;
+      const mlSellingPrice = hasMlSellingPrice ? (typeof mlSellingPriceVal === 'number' ? mlSellingPriceVal : parseFloat(mlSellingPriceVal?.toString() || '0') || 0) : 0;
+      const directSellingPrice = hasDirectSellingPrice ? (typeof directSellingPriceVal === 'number' ? directSellingPriceVal : parseFloat(directSellingPriceVal?.toString() || '0') || 0) : 0;
       
-      const isListedOnML = isListedOnMLStr === 'sim' || isListedOnMLStr === 'true' || isListedOnMLStr === '1';
+      const isListedOnML = hasIsListed ? (isListedOnMLStr === 'sim' || isListedOnMLStr === 'true' || isListedOnMLStr === '1') : false;
 
       // Resolver Fornecedor
       let supplierId: string | null = null;
-      if (supplierNameOrId) {
+      const hasSupplier = supplierNameOrId !== undefined && supplierNameOrId !== null && supplierNameOrId !== '';
+      if (hasSupplier) {
         const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
         if (uuidRegex.test(supplierNameOrId)) {
           supplierId = supplierNameOrId;
@@ -151,12 +158,12 @@ export class ImportExportService {
         // Atualiza campos
         product.name = name;
         product.slug = finalSlug;
-        product.quantity = quantity;
-        product.purchasePrice = purchasePrice;
-        product.mlSellingPrice = mlSellingPrice;
-        product.directSellingPrice = directSellingPrice;
-        product.isListedOnML = isListedOnML;
-        product.supplierId = supplierId;
+        if (hasQuantity) product.quantity = quantity;
+        if (hasPurchasePrice) product.purchasePrice = purchasePrice;
+        if (hasMlSellingPrice) product.mlSellingPrice = mlSellingPrice;
+        if (hasDirectSellingPrice) product.directSellingPrice = directSellingPrice;
+        if (hasIsListed) product.isListedOnML = isListedOnML;
+        if (hasSupplier) product.supplierId = supplierId;
         product.updatedBy = username;
       } else {
         // Cria novo
@@ -169,7 +176,7 @@ export class ImportExportService {
           mlSellingPrice,
           directSellingPrice,
           isListedOnML,
-          supplierId,
+          supplierId: hasSupplier ? supplierId : null,
           createdBy: username,
           updatedBy: username,
         });

@@ -72,13 +72,15 @@ O sistema permite a importação e exportação em lote de produtos utilizando p
 | **Nome** | Texto | Sim | Nome de exibição do produto |
 | **SKU** | Texto | Sim | Identificador único do produto (usado para localizar duplicidades) |
 | **Slug** | Texto | Não | Slug para URL. Se deixado em branco, será gerado automaticamente a partir do Nome |
-| **Quantidade** | Inteiro | Sim | Quantidade atual em estoque (mínimo: 0) |
-| **Preço de Custo** | Decimal | Sim | Valor pago de custo unitário (mínimo: 0) |
-| **Preço de Venda ML** | Decimal | Sim | Valor de venda no Mercado Livre (mínimo: 0) |
-| **Preço de Venda Direta** | Decimal | Sim | Valor de venda em canais diretos (mínimo: 0) |
-| **Anunciado ML (Sim/Não)** | Texto | Sim | Deve conter `Sim` para anunciado ou `Não` para não anunciado |
-| **Fornecedor (Nome ou ID)** | Texto | Não | Nome ou UUID do fornecedor cadastrado. A busca é feita sem distinção de maiúsculas/minúsculas. Se não houver correspondência exata, o campo ficará em branco |
-| **Imagens (URLs separadas por vírgula)** | Texto | Não | Lista de URLs de imagens do produto separadas por vírgula. Se preenchido, substitui as fotos antigas do produto |
+| **Quantidade** | Inteiro | Não | Quantidade em estoque. Se omitido em atualizações, preserva o valor atual (mínimo: 0) |
+| **Preço de Custo** | Decimal | Não | Valor de custo unitário. Se omitido em atualizações, preserva o valor atual (mínimo: 0) |
+| **Preço de Venda ML** | Decimal | Não | Valor de venda no Mercado Livre. Se omitido em atualizações, preserva o valor atual (mínimo: 0) |
+| **Preço de Venda Direta** | Decimal | Não | Valor de venda em canais diretos. Se omitido em atualizações, preserva o valor atual (mínimo: 0) |
+| **Anunciado ML (Sim/Não)** | Texto | Não | Deve conter `Sim` para anunciado ou `Não` para não anunciado. Se omitido em atualizações, preserva o valor atual |
+| **Fornecedor (Nome ou ID)** | Texto | Não | Nome ou UUID do fornecedor cadastrado. A busca é feita sem distinção de maiúsculas/minúsculas. Se omitido em atualizações, preserva o valor atual |
+| **Imagens (URLs separadas por vírgula)** | Texto | Não | Lista de URLs de imagens do produto separadas por vírgula. Se omitido em atualizações, preserva as fotos atuais. Se enviado vazio, limpa as imagens |
+
+> 💡 **Nota sobre atualizações:** Se um produto com o SKU informado já existir no banco, quaisquer campos opcionais deixados em branco (vazios) na planilha **não serão sobrescritas**, preservando os valores já cadastrados no banco de dados.
 
 > 💡 **Dica:** Para gerar uma planilha modelo com a formatação e os cabeçalhos corretos, utilize o botão **"Exportar Excel"** na listagem de Catálogo do sistema.
 
