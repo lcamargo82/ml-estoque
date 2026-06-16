@@ -6,6 +6,7 @@ import { UsersModule } from '@modules/users/users.module';
 import { ProductsModule } from '@modules/products/products.module';
 import { SuppliersModule } from '@modules/suppliers/suppliers.module';
 import { DashboardModule } from '@modules/dashboard/dashboard.module';
+import { ImportExportModule } from '@modules/import-export/import-export.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { validationSchema } from '@config/env.validation';
@@ -27,6 +28,7 @@ import { getTypeOrmConfig } from '@config/typeorm.config';
     ProductsModule,
     SuppliersModule,
     DashboardModule,
+    ImportExportModule,
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'public', 'uploads'),
       serveRoot: '/uploads',

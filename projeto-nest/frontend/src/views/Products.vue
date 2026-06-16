@@ -11,7 +11,9 @@ import {
   Package,
   AlertCircle,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Download,
+  Upload
 } from 'lucide-vue-next';
 import { ProductRepository } from '@/repositories/ProductRepository';
 import type { Product } from '@/types';
@@ -21,6 +23,7 @@ import BaseInput from '@/components/ui/BaseInput.vue';
 import BaseConfirmModal from '@/components/ui/BaseConfirmModal.vue';
 import { SupplierRepository } from '@/repositories/SupplierRepository';
 import type { Supplier } from '@/types';
+import { ImportExportRepository } from '@/repositories/ImportExportRepository';
 
 const toast = useToast();
 const products = ref<Product[]>([]);
@@ -174,6 +177,58 @@ const generateSlug = () => {
       .replace(/^-+|-+$/g, '');
   }
 };
+
+const fileInput = ref<HTMLInputElement | null>(null);
+const isExporting = ref(false);
+const isImporting = ref(false);
+
+const handleExport = async () => {
+  isExporting.value = true;
+  try {
+    const blob = await ImportExportRepository.export();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'produtos_estoque.xlsx');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    toast.success('Planilha exportada com sucesso!');
+  } catch (error) {
+    toast.error('Erro ao exportar planilha.');
+  } finally {
+    isExporting.value = false;
+  }
+};
+
+const triggerImport = () => {
+  fileInput.value?.click();
+};
+
+const handleImport = async (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+  if (!file) return;
+
+  isImporting.value = true;
+  const loadingToast = toast.info('Importando planilha, por favor aguarde...', { timeout: 0 });
+  try {
+    const result = await ImportExportRepository.import(file);
+    toast.dismiss(loadingToast);
+    toast.success(`${result.count} produtos importados/atualizados com sucesso!`);
+    fetchProducts();
+  } catch (error: any) {
+    toast.dismiss(loadingToast);
+    const message = error.response?.data?.message || 'Erro ao importar planilha.';
+    toast.error(Array.isArray(message) ? message[0] : message);
+  } finally {
+    isImporting.value = false;
+    if (fileInput.value) {
+      fileInput.value.value = '';
+    }
+  }
+};
 </script>
 
 <template>
@@ -184,13 +239,41 @@ const generateSlug = () => {
         <h1 class="text-2xl font-bold text-white">Catálogo de Produtos</h1>
         <p class="text-neutral mt-1">Gerencie seu estoque e anúncios do Mercado Livre.</p>
       </div>
-      <button 
-        @click="openCreateModal"
-        class="flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white px-4 py-2.5 rounded-xl transition-all shadow-lg shadow-primary/20 font-medium"
-      >
-        <Plus class="w-5 h-5" />
-        Novo Produto
-      </button>
+      <div class="flex flex-wrap gap-2">
+        <input 
+          type="file" 
+          ref="fileInput" 
+          accept=".xlsx" 
+          class="hidden" 
+          @change="handleImport" 
+        />
+        
+        <button 
+          @click="triggerImport"
+          :disabled="isImporting"
+          class="flex items-center justify-center gap-2 bg-background border border-white/10 text-neutral hover:bg-white/5 hover:text-white px-4 py-2.5 rounded-xl transition-all font-medium disabled:opacity-50"
+        >
+          <Upload class="w-4 h-4" />
+          Importar Excel
+        </button>
+
+        <button 
+          @click="handleExport"
+          :disabled="isExporting"
+          class="flex items-center justify-center gap-2 bg-background border border-white/10 text-neutral hover:bg-white/5 hover:text-white px-4 py-2.5 rounded-xl transition-all font-medium disabled:opacity-50"
+        >
+          <Download class="w-4 h-4" />
+          Exportar Excel
+        </button>
+
+        <button 
+          @click="openCreateModal"
+          class="flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white px-4 py-2.5 rounded-xl transition-all shadow-lg shadow-primary/20 font-medium"
+        >
+          <Plus class="w-5 h-5" />
+          Novo Produto
+        </button>
+      </div>
     </div>
 
     <!-- Filters & Search -->

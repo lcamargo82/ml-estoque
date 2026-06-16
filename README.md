@@ -61,5 +61,27 @@ Todo o ambiente é orquestrado via Docker para garantir paridade entre desenvolv
 - **Login**: `le.camargo81@gmail.com`
 - **Senha**: `@ML_070426`
 
+## 📊 Importação e Exportação via Excel
+
+O sistema permite a importação e exportação em lote de produtos utilizando planilhas no formato `.xlsx`. A importação realiza um **Upsert** (insere novos produtos ou atualiza existentes correspondendo pelo **SKU**).
+
+### Padrão de Colunas da Planilha
+
+| Cabeçalho Excel | Tipo | Obrigatório | Regras e Formato |
+| :--- | :--- | :--- | :--- |
+| **Nome** | Texto | Sim | Nome de exibição do produto |
+| **SKU** | Texto | Sim | Identificador único do produto (usado para localizar duplicidades) |
+| **Slug** | Texto | Não | Slug para URL. Se deixado em branco, será gerado automaticamente a partir do Nome |
+| **Quantidade** | Inteiro | Sim | Quantidade atual em estoque (mínimo: 0) |
+| **Preço de Custo** | Decimal | Sim | Valor pago de custo unitário (mínimo: 0) |
+| **Preço de Venda ML** | Decimal | Sim | Valor de venda no Mercado Livre (mínimo: 0) |
+| **Preço de Venda Direta** | Decimal | Sim | Valor de venda em canais diretos (mínimo: 0) |
+| **Anunciado ML (Sim/Não)** | Texto | Sim | Deve conter `Sim` para anunciado ou `Não` para não anunciado |
+| **Fornecedor (Nome ou ID)** | Texto | Não | Nome ou UUID do fornecedor cadastrado. A busca é feita sem distinção de maiúsculas/minúsculas. Se não houver correspondência exata, o campo ficará em branco |
+| **Imagens (URLs separadas por vírgula)** | Texto | Não | Lista de URLs de imagens do produto separadas por vírgula. Se preenchido, substitui as fotos antigas do produto |
+
+> 💡 **Dica:** Para gerar uma planilha modelo com a formatação e os cabeçalhos corretos, utilize o botão **"Exportar Excel"** na listagem de Catálogo do sistema.
+
 ---
 *Desenvolvido com Antigravity Kit - 2026*
+
