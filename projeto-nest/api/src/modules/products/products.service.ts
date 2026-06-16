@@ -49,7 +49,17 @@ export class ProductsService {
       productData.supplierId = null;
     }
 
-    const slug = productData.slug || slugify(productData.name, { lower: true });
+    let slug = productData.slug || slugify(productData.name, { lower: true });
+
+    // Evitar colisão de slug com outros produtos (ativos ou soft-deleted)
+    const slugConflict = await this.productRepository.findOne({
+      where: { slug },
+      withDeleted: true,
+    });
+    if (slugConflict && slugConflict.sku !== productData.sku) {
+      slug = `${slug}-${slugify(productData.sku, { lower: true })}`;
+    }
+
     const processedImages = await this.processImages(images || []);
 
     const product = this.productRepository.create({
@@ -94,6 +104,16 @@ export class ProductsService {
     // Handle slug auto-generation if name changes and slug is not provided
     if (productData.name && !productData.slug) {
       productData.slug = slugify(productData.name, { lower: true });
+    }
+
+    if (productData.slug) {
+      const slugConflict = await this.productRepository.findOne({
+        where: { slug: productData.slug },
+        withDeleted: true,
+      });
+      if (slugConflict && slugConflict.sku !== (productData.sku || product.sku)) {
+        productData.slug = `${productData.slug}-${slugify(productData.sku || product.sku, { lower: true })}`;
+      }
     }
 
     Object.assign(product, {

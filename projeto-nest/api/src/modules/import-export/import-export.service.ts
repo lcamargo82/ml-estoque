@@ -150,11 +150,25 @@ export class ImportExportService {
       // Upsert do Produto por SKU
       let product = await this.productRepository.findOne({
         where: { sku },
+        withDeleted: true,
       });
 
-      const finalSlug = slug || slugify(name, { lower: true });
+      let finalSlug = slug || slugify(name, { lower: true });
+
+      // Evita colisão de slug com outros produtos (ativos ou soft-deleted)
+      const slugConflict = await this.productRepository.findOne({
+        where: { slug: finalSlug },
+        withDeleted: true,
+      });
+      if (slugConflict && slugConflict.sku !== sku) {
+        finalSlug = `${finalSlug}-${slugify(sku, { lower: true })}`;
+      }
 
       if (product) {
+        // Se o produto foi soft-deleted anteriormente, restaura ele
+        if (product.deletedAt) {
+          product.deletedAt = null;
+        }
         // Atualiza campos
         product.name = name;
         product.slug = finalSlug;
