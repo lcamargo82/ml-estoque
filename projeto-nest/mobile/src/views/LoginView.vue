@@ -86,27 +86,22 @@ onMounted(() => authStore.initialize());
 </script>
 
 <style scoped>
+ion-content {
+  --background: var(--ion-card-background);
+}
 .login-wrap {
   display: flex;
   flex-direction: column;
   justify-content: center;
   min-height: 100%;
-  padding: 24px;
-  background: var(--ion-background-color);
-}
-.login-card {
-  background: var(--ion-card-background);
   padding: 32px 24px;
-  border-radius: 20px;
   text-align: center;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-  margin-bottom: 24px;
 }
 .app-logo-image {
   width: 96px;
   height: 96px;
   border-radius: 22px;
-  margin: 0 auto 16px;
+  margin: 0 auto 24px;
   display: block;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
   border: 1px solid var(--ion-color-step-150);
