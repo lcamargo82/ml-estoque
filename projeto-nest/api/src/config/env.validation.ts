@@ -18,4 +18,5 @@ export const validationSchema = Joi.object({
   SMTP_PASSWORD: Joi.string().required(),
   SMTP_FROM: Joi.string().required(),
   FRONTEND_URL: Joi.string().default('http://localhost:5173'),
+  MOBILE_RESET_URL: Joi.string().default('mlestoque://reset-password'),
 });

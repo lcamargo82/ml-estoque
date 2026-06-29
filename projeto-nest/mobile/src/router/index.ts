@@ -2,6 +2,19 @@ import { createRouter, createWebHashHistory } from '@ionic/vue-router';
 import { RouteRecordRaw } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 
+export const resetRouteFromUrl = (rawUrl: string) => {
+  try {
+    const url = new URL(rawUrl);
+    const token = url.searchParams.get('token');
+    if (url.protocol !== 'mlestoque:' || url.hostname !== 'reset-password' || !token) {
+      return null;
+    }
+    return { path: '/reset-password', query: { token } };
+  } catch {
+    return null;
+  }
+};
+
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
@@ -13,6 +26,17 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('../views/LoginView.vue'),
     meta: { public: true }
   },
+  {
+    path: '/reset-password',
+    name: 'ResetPassword',
+    component: () => import('../views/ResetPasswordView.vue'),
+    meta: { public: true }
+  },
+  { path: '/forgot-password', name: 'ForgotPassword', component: () => import('../views/ForgotPasswordView.vue'), meta: { public: true } },
+  { path: '/suppliers', name: 'Suppliers', component: () => import('../views/SuppliersView.vue') },
+  { path: '/suppliers/new', name: 'NewSupplier', component: () => import('../views/SupplierFormView.vue') },
+  { path: '/suppliers/:id/edit', name: 'EditSupplier', component: () => import('../views/SupplierFormView.vue') },
+  { path: '/profile', name: 'Profile', component: () => import('../views/ProfileView.vue') },
   {
     path: '/home',
     name: 'Home',
@@ -33,6 +57,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'AddProduct',
     component: () => import('../views/AddProductView.vue')
   },
+  { path: '/products/:id/edit', name: 'EditProduct', component: () => import('../views/AddProductView.vue') },
   {
     path: '/movement',
     name: 'Movement',

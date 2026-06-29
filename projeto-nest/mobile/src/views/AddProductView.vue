@@ -188,11 +188,12 @@ import {
 } from 'ionicons/icons';
 import { reactive, ref } from 'vue';
 import { useInventoryStore } from '../stores/inventory';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 
 const inventoryStore = useInventoryStore();
 const router = useRouter();
+const route = useRoute();
 
 const form = reactive({
   name: '',
@@ -211,6 +212,11 @@ const capturedImages = ref<any[]>([]);
 
 onIonViewWillEnter(async () => {
   await inventoryStore.fetchSuppliers();
+  const product = inventoryStore.items.find(item => item.id === route.params.id);
+  if (product) {
+    Object.assign(form, product);
+    capturedImages.value = (product.images || []).map(dataUrl => ({ dataUrl }));
+  }
 });
 
 const presentPhotoActionSheet = async () => {
@@ -295,7 +301,11 @@ const handleSubmit = async () => {
 
     console.log('Final Product Payload:', productPayload);
 
-    await inventoryStore.createProduct(productPayload);
+    if (route.params.id) {
+      await inventoryStore.updateProduct(String(route.params.id), productPayload);
+    } else {
+      await inventoryStore.createProduct(productPayload);
+    }
 
     const toast = await toastController.create({
       message: 'Produto cadastrado com sucesso!',

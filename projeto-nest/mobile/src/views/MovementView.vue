@@ -3,7 +3,7 @@
     <ion-header class="ion-no-border">
       <ion-toolbar color="primary">
         <ion-buttons slot="start">
-          <ion-menu-button></ion-menu-button>
+          <ion-back-button default-href="/home"></ion-back-button>
         </ion-buttons>
         <ion-title>Movimentação</ion-title>
       </ion-toolbar>
@@ -45,19 +45,20 @@
 <script setup lang="ts">
 import { 
   IonPage, IonHeader, IonToolbar, IonTitle, IonContent, 
-  IonList, IonItem, IonLabel, IonSelect, IonSelectOption,
-  IonInput, IonButton, IonButtons, IonMenuButton, alertController
+  IonList, IonItem, IonSelect, IonSelectOption,
+  IonInput, IonButton, IonButtons, IonBackButton, alertController
 } from '@ionic/vue';
 import { reactive, computed } from 'vue';
 import { useInventoryStore } from '../stores/inventory';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 const inventoryStore = useInventoryStore();
 const router = useRouter();
+const route = useRoute();
 
 const form = reactive({
-  type: 'IN' as 'IN' | 'OUT',
-  productId: '',
+  type: (route.query.type === 'OUT' ? 'OUT' : 'IN') as 'IN' | 'OUT',
+  productId: String(route.query.prodId || ''),
   quantity: 0
 });
 

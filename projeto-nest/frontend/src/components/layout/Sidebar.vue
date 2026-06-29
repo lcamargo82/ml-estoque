@@ -12,6 +12,7 @@ import {
   Truck
 } from 'lucide-vue-next';
 import { useRouter, useRoute } from 'vue-router';
+import { useAuthStore } from '@/stores/auth';
 
 const props = defineProps<{
   isCollapsed: boolean;
@@ -21,6 +22,7 @@ const emit = defineEmits(['toggle']);
 
 const router = useRouter();
 const route = useRoute();
+const authStore = useAuthStore();
 
 const menuItems = [
   { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
@@ -35,6 +37,11 @@ const navigate = (path: string) => {
 };
 
 const isActive = (path: string) => route.path === path;
+
+const handleLogout = () => {
+  authStore.logout();
+  router.push({ name: 'Login' });
+};
 </script>
 
 <template>
@@ -91,7 +98,7 @@ const isActive = (path: string) => route.path === path;
         <HelpCircle class="w-6 h-6 flex-shrink-0" />
         <span v-if="!isCollapsed" class="font-medium">Suporte</span>
       </button>
-      <button class="w-full flex items-center gap-4 p-3 rounded-xl text-red-400 hover:bg-red-400/10 transition-all">
+      <button @click="handleLogout" class="w-full flex items-center gap-4 p-3 rounded-xl text-red-400 hover:bg-red-400/10 transition-all">
         <LogOut class="w-6 h-6 flex-shrink-0" />
         <span v-if="!isCollapsed" class="font-medium">Sair</span>
       </button>

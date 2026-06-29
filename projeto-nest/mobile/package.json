@@ -1,12 +1,14 @@
 {
   "name": "mobile",
   "private": true,
-  "version": "0.0.1",
+  "version": "1.0.5",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc && vite build",
     "preview": "vite preview",
+    "android:sync": "npm run build && cap sync android",
+    "release:aab": "npm run android:sync && cd android && ./gradlew :app:bundleRelease",
     "test:e2e": "cypress run",
     "test:unit": "vitest",
     "lint": "eslint ."

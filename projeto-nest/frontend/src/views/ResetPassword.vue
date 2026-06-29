@@ -11,28 +11,50 @@
       <form v-if="!success" @submit.prevent="handleSubmit" class="space-y-6">
         <div>
           <label for="password" class="block text-sm font-medium text-white mb-2">Nova Senha</label>
-          <input 
-            id="password"
-            v-model="password"
-            type="password" 
-            placeholder="Mínimo 6 caracteres"
-            class="input-field"
-            required
-            :disabled="loading"
-          />
+          <div class="relative">
+            <input
+              id="password"
+              v-model="password"
+              :type="passwordVisible ? 'text' : 'password'"
+              placeholder="Mínimo 6 caracteres"
+              class="input-field pr-12"
+              required
+              :disabled="loading"
+            />
+            <button 
+              type="button" 
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-neutral hover:text-white transition-colors duration-200" 
+              :aria-label="passwordVisible ? 'Ocultar senha' : 'Mostrar senha'" 
+              @click="passwordVisible = !passwordVisible"
+            >
+              <EyeOff v-if="passwordVisible" class="w-5 h-5"/>
+              <Eye v-else class="w-5 h-5"/>
+            </button>
+          </div>
         </div>
 
         <div>
           <label for="confirmPassword" class="block text-sm font-medium text-white mb-2">Confirmar Nova Senha</label>
-          <input 
-            id="confirmPassword"
-            v-model="confirmPassword"
-            type="password" 
-            placeholder="Confirme sua nova senha"
-            class="input-field"
-            required
-            :disabled="loading"
-          />
+          <div class="relative">
+            <input
+              id="confirmPassword"
+              v-model="confirmPassword"
+              :type="confirmVisible ? 'text' : 'password'"
+              placeholder="Confirme sua nova senha"
+              class="input-field pr-12"
+              required
+              :disabled="loading"
+            />
+            <button 
+              type="button" 
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-neutral hover:text-white transition-colors duration-200" 
+              :aria-label="confirmVisible ? 'Ocultar senha' : 'Mostrar senha'" 
+              @click="confirmVisible = !confirmVisible"
+            >
+              <EyeOff v-if="confirmVisible" class="w-5 h-5"/>
+              <Eye v-else class="w-5 h-5"/>
+            </button>
+          </div>
         </div>
 
         <div v-if="error" class="text-red-400 text-sm bg-red-400/10 p-3 rounded-lg border border-red-400/20">
@@ -69,6 +91,7 @@ import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import api from '@/services/api';
 import { useToast } from 'vue-toastification';
+import { Eye, EyeOff } from 'lucide-vue-next';
 
 const route = useRoute();
 const router = useRouter();
@@ -80,6 +103,8 @@ const token = ref('');
 const loading = ref(false);
 const error = ref<string | null>(null);
 const success = ref(false);
+const passwordVisible = ref(false);
+const confirmVisible = ref(false);
 
 onMounted(() => {
   const queryToken = route.query.token as string;

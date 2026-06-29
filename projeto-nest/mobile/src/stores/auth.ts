@@ -10,6 +10,12 @@ interface User {
   role: string;
 }
 
+type BiometricResult =
+  | { success: true }
+  | { success: false; reason: 'unavailable' | 'not-linked' | 'cancelled' | 'credentials-missing' | 'login-failed' };
+
+const BIOMETRIC_SERVER = 'ml-estoque';
+
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: null as User | null,
@@ -68,22 +74,59 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    async saveBiometricCredentials(email: string, password: string) {
+    async clearBiometricLink() {
       try {
-        await NativeBiometric.setCredentials({
-          username: email,
-          password: password,
-          server: 'ml-estoque',
+        await NativeBiometric.deleteCredentials({ server: BIOMETRIC_SERVER });
+      } catch {
+        // The credential may already have been removed by the operating system.
+      }
+      await Preferences.remove({ key: 'biometrics_linked' });
+      this.biometricsLinked = false;
+    },
+
+    async enrollBiometrics(credentials: { email: string; password: string }): Promise<BiometricResult> {
+      if (!this.biometricsAvailable) {
+        return { success: false, reason: 'unavailable' };
+      }
+
+      try {
+        await NativeBiometric.verifyIdentity({
+          reason: 'Ativar acesso biométrico ao ML Estoque',
+          title: 'Ativar Biometria',
+          subtitle: 'Confirme sua identidade',
+          description: 'Suas credenciais serão protegidas pelo dispositivo',
         });
+        await NativeBiometric.setCredentials({
+          username: credentials.email,
+          password: credentials.password,
+          server: BIOMETRIC_SERVER,
+        });
+        const savedCredentials = await NativeBiometric.getCredentials({
+          server: BIOMETRIC_SERVER,
+        });
+        if (
+          savedCredentials.username !== credentials.email ||
+          savedCredentials.password !== credentials.password
+        ) {
+          await this.clearBiometricLink();
+          return { success: false, reason: 'credentials-missing' };
+        }
         await Preferences.set({ key: 'biometrics_linked', value: 'true' });
         this.biometricsLinked = true;
-      } catch (err) {
-        console.error('Failed to save biometric credentials', err);
+        return { success: true };
+      } catch {
+        await this.clearBiometricLink();
+        return { success: false, reason: 'cancelled' };
       }
     },
 
-    async loginWithBiometrics() {
-      if (!this.biometricsAvailable || !this.biometricsLinked) return false;
+    async saveBiometricCredentials(email: string, password: string) {
+      return this.enrollBiometrics({ email, password });
+    },
+
+    async loginWithBiometrics(): Promise<BiometricResult> {
+      if (!this.biometricsAvailable) return { success: false, reason: 'unavailable' };
+      if (!this.biometricsLinked) return { success: false, reason: 'not-linked' };
 
       try {
         await NativeBiometric.verifyIdentity({
@@ -95,20 +138,29 @@ export const useAuthStore = defineStore('auth', {
 
         // Recuperar credenciais seguras
         const credentials = await NativeBiometric.getCredentials({
-          server: 'ml-estoque',
+          server: BIOMETRIC_SERVER,
         });
 
         if (credentials && credentials.username && credentials.password) {
-          return await this.login({
+          const success = await this.login({
             email: credentials.username,
             password: credentials.password
           });
+          return success
+            ? { success: true }
+            : { success: false, reason: 'login-failed' };
         }
-        
-        return false;
-      } catch (err) {
-        console.error('Biometric authentication failed', err);
-        return false;
+
+        await this.clearBiometricLink();
+        return { success: false, reason: 'credentials-missing' };
+      } catch {
+        try {
+          await NativeBiometric.getCredentials({ server: BIOMETRIC_SERVER });
+        } catch {
+          await this.clearBiometricLink();
+          return { success: false, reason: 'credentials-missing' };
+        }
+        return { success: false, reason: 'cancelled' };
       }
     },
 
@@ -119,6 +171,27 @@ export const useAuthStore = defineStore('auth', {
       } catch (err) {
         await this.logout();
       }
+    },
+
+    async updateProfile(profile: { name: string; email: string }) {
+      const response = await api.patch('/auth/profile', profile);
+      this.user = response.data;
+      return response.data;
+    },
+
+    async changePassword(credentials: { currentPassword: string; newPassword: string }) {
+      const response = await api.post('/auth/change-password', credentials);
+      return response.data;
+    },
+
+    async requestPasswordReset(email: string) {
+      const response = await api.post('/auth/forgot-password', { email });
+      return response.data;
+    },
+
+    async resetPassword(token: string, password: string) {
+      const response = await api.post('/auth/reset-password', { token, password });
+      return response.data;
     },
 
     async logout() {

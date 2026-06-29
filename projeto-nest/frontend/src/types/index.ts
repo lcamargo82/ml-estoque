@@ -40,3 +40,11 @@ export interface User {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface DashboardStats {
+  totalProducts: number;
+  totalQuantity: number;
+  totalCostValue: number;
+  totalListed: number;
+  totalUnlisted: number;
+}

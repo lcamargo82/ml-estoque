@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { 
-  AlertCircle 
+  AlertCircle, Eye, EyeOff
 } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
 
 const props = defineProps<{
   label?: string;
@@ -14,6 +15,8 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits(['update:modelValue', 'blur']);
+const passwordVisible = ref(false);
+const inputType = computed(() => props.type === 'password' && passwordVisible.value ? 'text' : (props.type || 'text'));
 </script>
 
 <template>
@@ -38,19 +41,30 @@ const emit = defineEmits(['update:modelValue', 'blur']);
       
       <input
         :id="id"
-        :type="type || 'text'"
+        :type="inputType"
         :value="modelValue"
         :placeholder="placeholder"
         @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)"
         @blur="emit('blur')"
         class="w-full bg-surface border rounded-xl py-3 text-white placeholder-neutral/30 transition-all duration-200 outline-none"
         :class="[
-          icon ? 'pl-12 pr-4' : 'px-4',
+          icon ? 'pl-12' : 'pl-4',
+          type === 'password' ? 'pr-12' : 'pr-4',
           error 
             ? 'border-red-500/50 focus:border-red-500 shadow-lg shadow-red-500/5' 
             : 'border-white/5 focus:border-primary focus:ring-4 focus:ring-primary/10'
         ]"
       />
+      <button
+        v-if="type === 'password'"
+        type="button"
+        class="absolute right-3 text-neutral hover:text-white"
+        :aria-label="passwordVisible ? 'Ocultar senha' : 'Mostrar senha'"
+        @click="passwordVisible = !passwordVisible"
+      >
+        <EyeOff v-if="passwordVisible" class="w-5 h-5" />
+        <Eye v-else class="w-5 h-5" />
+      </button>
     </div>
 
     <!-- Error Message -->

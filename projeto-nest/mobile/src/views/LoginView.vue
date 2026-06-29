@@ -1,64 +1,38 @@
 <template>
   <ion-page>
-    <ion-content :fullscreen="true" class="ion-padding auth-background">
-      <div class="login-container">
-        <div class="logo-section">
-          <ion-icon :icon="cubeOutline" class="logo-icon"></ion-icon>
-          <h1>ML <span>Estoque</span></h1>
-          <p>Gestão Inteligente Mobile</p>
-        </div>
+    <ion-content>
+      <div class="login-wrap">
+        <main class="login-card">
+          <img src="/app-logo.png" class="app-logo-image" alt="ML Estoque Logo" />
+          <h1>ML Estoque</h1>
+          <p class="subtitle">Gerenciamento de alta performance</p>
 
-        <div class="form-section">
-          <ion-item lines="full" class="ion-margin-bottom custom-item">
-            <ion-label position="floating">E-mail</ion-label>
-            <ion-input 
-              v-model="form.email" 
-              type="email" 
-              placeholder="exemplo@ml.com"
-            ></ion-input>
-          </ion-item>
-
-          <ion-item lines="full" class="ion-margin-bottom custom-item">
-            <ion-label position="floating">Senha</ion-label>
-            <ion-input 
-              v-model="form.password" 
-              type="password" 
-              placeholder="••••••••"
-            ></ion-input>
-          </ion-item>
-
-          <div v-if="authStore.error" class="error-message">
-            {{ authStore.error }}
+          <AppField v-model="form.email" label="E-mail" placeholder="nome@empresa.com.br" :icon="mailOutline" />
+          
+          <PasswordField v-model="form.password" label="Senha" placeholder="••••••••" :icon="lockClosedOutline" />
+          
+          <div class="forgot-link-wrap">
+            <router-link to="/forgot-password">Esqueci minha senha</router-link>
           </div>
-
-          <ion-button 
-            expand="block" 
-            class="login-button ion-margin-top" 
-            @click="handleLogin"
-            :disabled="authStore.loading"
-          >
-            <ion-spinner v-if="authStore.loading" name="crescent"></ion-spinner>
-            <span v-else>Acessar</span>
-          </ion-button>
-
-          <div v-if="authStore.biometricsAvailable" class="biometric-section">
-            <div class="divider">
-              <span>ou use biometria</span>
+          
+          <div v-if="authStore.error" class="form-error">{{ authStore.error }}</div>
+          
+          <button class="primary-button" :disabled="authStore.loading" @click="handleLogin">
+            {{ authStore.loading ? 'Entrando...' : 'Acessar Sistema' }}
+          </button>
+          
+          <div v-if="authStore.biometricsAvailable" class="bio">
+            <div class="bio-divider">
+              <span>ou</span>
             </div>
-            
-            <ion-button 
-              fill="clear" 
-              class="biometric-button" 
-              @click="handleBiometricLogin"
-            >
-              <ion-icon :icon="fingerPrintOutline" size="large"></ion-icon>
-            </ion-button>
+            <button aria-label="Acessar com biometria" class="bio-btn" @click="handleBiometricLogin">
+              <ion-icon :icon="fingerPrintOutline" />
+            </button>
+            <p>Acessar com Biometria</p>
           </div>
-        </div>
-
-        <div class="footer-section">
-          <p>© 2026 Admin Painel. Todos os direitos reservados.</p>
-        </div>
+        </main>
+        
+        <footer>ML Estoque © 2026 • Infraestrutura de Logística Segura</footer>
       </div>
     </ion-content>
   </ion-page>
@@ -66,192 +40,149 @@
 
 <script setup lang="ts">
 import { reactive, onMounted } from 'vue';
-import { 
-  IonPage, IonContent, IonItem, IonLabel, IonInput, IonButton, 
-  IonIcon, IonSpinner, toastController, alertController
-} from '@ionic/vue';
-import { cubeOutline, fingerPrintOutline } from 'ionicons/icons';
+import { IonPage, IonContent, IonIcon, toastController, alertController } from '@ionic/vue';
+import { fingerPrintOutline, lockClosedOutline, mailOutline } from 'ionicons/icons';
+import AppField from '@/components/AppField.vue';
+import PasswordField from '@/components/PasswordField.vue';
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
 
-const authStore = useAuthStore();
-const router = useRouter();
-
-const form = reactive({
-  email: '',
-  password: '',
-});
+const authStore = useAuthStore(), router = useRouter(), form = reactive({ email: '', password: '' });
 
 const handleLogin = async () => {
-  if (!form.email || !form.password) {
-    const toast = await toastController.create({
-      message: 'Preencha todos os campos',
-      duration: 2000,
-      color: 'warning'
-    });
-    await toast.present();
-    return;
-  }
-
-  const success = await authStore.login(form);
-  if (success) {
-    // Verificar se podemos vincular biometria
+  if (!form.email || !form.password) return toast('Preencha todos os campos', 'warning');
+  if (await authStore.login(form)) {
     if (authStore.biometricsAvailable && !authStore.biometricsLinked) {
       const alert = await alertController.create({
         header: 'Ativar Biometria?',
-        message: 'Deseja usar sua digital para acessar o app rapidamente nas próximas vezes?',
+        message: 'Deseja usar biometria nos próximos acessos?',
         buttons: [
-          {
-            text: 'Agora não',
-            role: 'cancel',
-            handler: () => {
-              router.push('/home');
-            }
-          },
-          {
-            text: 'Sim, ativar',
-            handler: async () => {
-              await authStore.saveBiometricCredentials(form.email, form.password);
-              router.push('/home');
-            }
-          }
+          { text: 'Agora não', handler: () => router.replace('/home') },
+          { text: 'Ativar', handler: async () => { await authStore.enrollBiometrics(form); router.replace('/home') } }
         ]
       });
-      await alert.present();
-    } else {
-      router.push('/home');
-    }
+      await alert.present()
+    } else router.replace('/home')
   }
 };
 
 const handleBiometricLogin = async () => {
-  const success = await authStore.loginWithBiometrics();
-  if (success) {
-    router.push('/home');
-  } else {
-    const toast = await toastController.create({
-      message: 'Falha na autenticação biométrica ou vínculo não encontrado',
-      duration: 2500,
-      color: 'danger',
-      position: 'bottom'
-    });
-    await toast.present();
-  }
+  const result = await authStore.loginWithBiometrics();
+  if (result.success) router.replace('/home');
+  else toast({
+    'unavailable': 'Biometria indisponível',
+    'not-linked': 'Entre com sua senha para ativar a biometria',
+    'cancelled': 'Autenticação cancelada',
+    'credentials-missing': 'Vínculo expirado. Entre novamente',
+    'login-failed': authStore.error || 'Falha no login'
+  }[result.reason as string] || 'Falha no login', 'danger')
 };
 
-onMounted(async () => {
-  await authStore.initialize();
-  // Se biometria estiver vinculada, tenta prompt automático (opcional)
-  if (authStore.biometricsAvailable && authStore.biometricsLinked) {
-     // handleBiometricLogin(); 
-  }
-});
+const toast = async (message: string, color: string) => {
+  const t = await toastController.create({ message, color, duration: 2500 });
+  await t.present()
+};
+onMounted(() => authStore.initialize());
 </script>
 
 <style scoped>
-.auth-background {
-  --background: var(--ion-background-color);
+ion-content {
+  --background: var(--ion-card-background);
 }
-
-.login-container {
+.login-wrap {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  height: 100%;
-  padding: 40px 20px;
-}
-
-.logo-section {
+  justify-content: center;
+  min-height: 100%;
+  padding: 32px 24px;
   text-align: center;
-  margin-top: 40px;
 }
-
-.logo-icon {
-  font-size: 64px;
-  color: var(--ion-color-primary);
-  margin-bottom: 16px;
+.app-logo-image {
+  width: 96px;
+  height: 96px;
+  border-radius: 22px;
+  margin: 0 auto 24px;
+  display: block;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--ion-color-step-150);
 }
-
-.logo-section h1 {
-  font-size: 32px;
-  font-weight: 800;
-  color: white;
-  margin: 0;
+h1 {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: var(--ion-text-color);
 }
-
-.logo-section span {
-  color: var(--ion-color-primary);
-}
-
-.logo-section p {
+.subtitle {
   color: var(--ion-color-medium);
-  margin-top: 8px;
+  font-size: 14px;
+  margin-bottom: 32px;
 }
-
-.form-section {
-  margin-bottom: 40px;
+.forgot-link-wrap {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+  margin-bottom: 24px;
 }
-
-.custom-item {
-  --background: transparent;
-  --color: white;
-  --highlight-color-focused: var(--ion-color-primary);
+.forgot-link-wrap a {
+  color: var(--ion-color-primary-tint);
+  font-size: 13px;
+  text-decoration: none;
+  font-weight: 500;
+  font-family: "JetBrains Mono", monospace;
 }
-
-.login-button {
-  --background: var(--ion-color-primary);
-  --border-radius: 12px;
-  height: 52px;
-  font-weight: 600;
+.bio {
   margin-top: 32px;
 }
-
-.error-message {
-  color: var(--ion-color-danger);
+.bio-divider {
+  position: relative;
+  text-align: center;
+  margin-bottom: 24px;
+}
+.bio-divider::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #2a364b;
+  z-index: 0;
+}
+.bio-divider span {
+  display: inline-block;
+  background: var(--ion-card-background);
+  padding: 0 16px;
+  color: var(--ion-color-medium);
+  font-size: 14px;
+  position: relative;
+  z-index: 1;
+}
+.bio-btn {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: transparent;
+  border: 2px solid var(--ion-color-primary);
+  color: var(--ion-color-primary);
+  font-size: 32px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+}
+.bio p {
+  color: var(--ion-color-medium);
   font-size: 14px;
   margin-top: 12px;
-  text-align: center;
 }
-
-.biometric-section {
-  text-align: center;
-  margin-top: 40px;
+.form-error {
+  color: var(--ion-color-danger);
+  font-size: 14px;
+  margin-bottom: 16px;
 }
-
-.divider {
-  display: flex;
-  align-items: center;
+footer {
   text-align: center;
   color: var(--ion-color-medium);
   font-size: 12px;
-  margin-bottom: 20px;
-}
-
-.divider::before,
-.divider::after {
-  content: '';
-  flex: 1;
-  border-bottom: 1px solid var(--ion-color-step-300);
-}
-
-.divider:not(:empty)::before {
-  margin-right: .50em;
-}
-
-.divider:not(:empty)::after {
-  margin-left: .50em;
-}
-
-.biometric-button {
-  --color: var(--ion-color-primary);
-}
-
-.footer-section {
-  text-align: center;
-}
-
-.footer-section p {
-  color: var(--ion-color-medium);
-  font-size: 12px;
+  font-family: "JetBrains Mono", monospace;
 }
 </style>

@@ -3,7 +3,7 @@
     <ion-header class="ion-no-border">
       <ion-toolbar color="primary">
         <ion-buttons slot="start">
-          <ion-menu-button></ion-menu-button>
+          <ion-back-button default-href="/home"></ion-back-button>
         </ion-buttons>
         <ion-title>Leitor de Código</ion-title>
       </ion-toolbar>
@@ -32,8 +32,8 @@
 <script setup lang="ts">
 import { 
   IonPage, IonHeader, IonToolbar, IonTitle, IonContent, 
-  IonButton, IonButtons, IonMenuButton, IonInput, IonItem,
-  alertController, IonSpinner, toastController
+  IonButton, IonButtons, IonBackButton, IonInput, IonItem,
+  alertController
 } from '@ionic/vue';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';

@@ -4,6 +4,11 @@ import { UsersService } from '@modules/users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { MailService } from '@modules/mail/mail.service';
 import { BadRequestException } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
+
+jest.mock('bcrypt', () => ({
+  compare: jest.fn(),
+}));
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -13,6 +18,7 @@ describe('AuthService', () => {
   beforeEach(async () => {
     const mockUsersService = {
       findByEmail: jest.fn(),
+      findByIdWithPassword: jest.fn(),
       findByResetToken: jest.fn(),
       update: jest.fn(),
     };
@@ -104,6 +110,63 @@ describe('AuthService', () => {
         resetPasswordToken: null,
         resetPasswordExpires: null,
       });
+    });
+  });
+
+  describe('updateProfile', () => {
+    it('updates only the authenticated user profile fields', async () => {
+      usersService.update.mockResolvedValue({
+        id: 'user-1',
+        name: 'Novo Nome',
+        email: 'novo@example.com',
+      } as any);
+
+      const result = await service.updateProfile('user-1', {
+        name: 'Novo Nome',
+        email: 'novo@example.com',
+      });
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        name: 'Novo Nome',
+        email: 'novo@example.com',
+      });
+      expect(result).not.toHaveProperty('password');
+    });
+  });
+
+  describe('changePassword', () => {
+    it('rejects an incorrect current password', async () => {
+      usersService.findByIdWithPassword.mockResolvedValue({
+        id: 'user-1',
+        password: 'stored-hash',
+      } as any);
+      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
+
+      await expect(service.changePassword('user-1', {
+        currentPassword: 'wrong-password',
+        newPassword: 'new-secret',
+      })).rejects.toThrow('Senha atual incorreta');
+
+      expect(usersService.update).not.toHaveBeenCalled();
+    });
+
+    it('updates the password when the current password is correct', async () => {
+      usersService.findByIdWithPassword.mockResolvedValue({
+        id: 'user-1',
+        password: 'stored-hash',
+      } as any);
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+      usersService.update.mockResolvedValue({ id: 'user-1' } as any);
+
+      const result = await service.changePassword('user-1', {
+        currentPassword: 'current-secret',
+        newPassword: 'new-secret',
+      });
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        password: 'new-secret',
+      });
+      expect(result).toEqual({ message: 'Senha alterada com sucesso' });
     });
   });
 });

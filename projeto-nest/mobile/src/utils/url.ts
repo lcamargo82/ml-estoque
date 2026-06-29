@@ -7,7 +7,7 @@ export const getImageUrl = (url: any): string => {
   if (!url) return 'https://placehold.co/400x400/1e293b/ffffff?text=Sem+Foto';
   
   // Caso o dado venha como objeto (legado do banco) em vez de string
-  let targetUrl = typeof url === 'string' ? url : url.url;
+  const targetUrl = typeof url === 'string' ? url : url.url;
   
   if (!targetUrl || typeof targetUrl !== 'string') {
     return 'https://placehold.co/400x400/1e293b/ffffff?text=Erro+Imagem';

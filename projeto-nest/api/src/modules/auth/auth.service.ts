@@ -5,6 +5,8 @@ import { MailService } from '@modules/mail/mail.service';
 import { LoginDto } from './dto/login.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 
@@ -105,5 +107,27 @@ export class AuthService {
     });
 
     return { message: 'Senha redefinida com sucesso' };
+  }
+
+  async updateProfile(userId: string, updateProfileDto: UpdateProfileDto) {
+    const user = await this.usersService.update(userId, {
+      name: updateProfileDto.name,
+      email: updateProfileDto.email,
+    });
+    const { password, resetPasswordToken, resetPasswordExpires, ...profile } = user;
+    return profile;
+  }
+
+  async changePassword(userId: string, changePasswordDto: ChangePasswordDto): Promise<{ message: string }> {
+    const user = await this.usersService.findByIdWithPassword(userId);
+    if (!user || !(await bcrypt.compare(changePasswordDto.currentPassword, user.password))) {
+      throw new BadRequestException('Senha atual incorreta');
+    }
+
+    await this.usersService.update(userId, {
+      password: changePasswordDto.newPassword,
+    });
+
+    return { message: 'Senha alterada com sucesso' };
   }
 }
