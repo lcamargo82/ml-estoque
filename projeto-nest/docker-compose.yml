@@ -77,4 +77,6 @@ networks:
 
 volumes:
   postgres_data:
+    external: true
+    name: ml-estoque_postgres_data_prod
   
