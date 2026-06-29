@@ -17,11 +17,14 @@ services:
       - ml_network
 
   prometheus:
-    image: prom/prometheus:latest
+    #image: prom/prometheus:latest
+    build: 
+      context: .
+      dockerfile: Dockerfile.prometheus
     container_name: nest_prometheus
     restart: always
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    # volumes:
+    #   - ./prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"
     networks:
@@ -45,9 +48,9 @@ services:
       DATABASE_NAME: ${DB_DATABASE:-nest_db}
       JWT_SECRET: ${JWT_SECRET:-super-secret-key}
       PORT: 3000
-    volumes:
-      - ./api:/usr/src/app
-      - /usr/src/app/node_modules
+    # volumes:
+    #   - ./api:/usr/src/app
+    #   - /usr/src/app/node_modules
     networks:
       - ml_network
 
