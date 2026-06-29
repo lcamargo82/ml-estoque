@@ -25,6 +25,7 @@ pipeline {
                     sh 'cp /var/jenkins_home/segredos-ml-estoque.env .env'
                     sh 'cp /var/jenkins_home/segredos-ml-estoque.env api/.env'
                     sh 'cp /var/jenkins_home/segredos-ml-estoque.env frontend/.env'
+                    sh 'cp /var/jenkins_home/segredos-ml-estoque.env frontend/.env.production'
                 }
             }
         }
