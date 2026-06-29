@@ -38,7 +38,7 @@ services:
     container_name: nest_api
     restart: always
     ports:
-      - "3002:3000"
+      - "3000:3000"
       - "9464:9464"
     environment:
       DATABASE_HOST: db
