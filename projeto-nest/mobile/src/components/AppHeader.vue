@@ -1,0 +1,2 @@
+<template><header class="app-header"><button v-if="back" class="icon-button" aria-label="Voltar" @click="$router.back()"><ion-icon :icon="arrowBackOutline" /></button><div class="app-brand"><ion-icon :icon="archiveOutline" /><strong>{{ title || 'ML Estoque' }}</strong></div><slot name="action"><span /></slot></header></template>
+<script setup lang="ts">import { IonIcon } from '@ionic/vue'; import { archiveOutline, arrowBackOutline } from 'ionicons/icons'; defineProps<{ title?: string; back?: boolean }>();</script>

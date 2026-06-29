@@ -22,7 +22,15 @@ export class User extends BaseEntity {
   @Column({
     type: 'enum',
     enum: UserRole,
-    default: UserRole.ADMIN,
   })
   role: UserRole;
+
+  @Column({ name: 'is_active', default: true })
+  isActive: boolean;
+
+  @Column({ name: 'reset_password_token', nullable: true, select: false })
+  resetPasswordToken: string;
+
+  @Column({ name: 'reset_password_expires', nullable: true, select: false })
+  resetPasswordExpires: Date;
 }

@@ -2,6 +2,8 @@ import { DataSource, DataSourceOptions } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { User } from '@modules/users/entities/user.entity';
 import { Product } from '@modules/products/entities/product.entity';
+import { ProductImage } from '@modules/products/entities/product-image.entity';
+import { Supplier } from '@modules/suppliers/entities/supplier.entity';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 
 export const getTypeOrmConfig = (configService: ConfigService): DataSourceOptions => ({
@@ -11,10 +13,10 @@ export const getTypeOrmConfig = (configService: ConfigService): DataSourceOption
   username: configService.get<string>('DATABASE_USER'),
   password: configService.get<string>('DATABASE_PASSWORD'),
   database: configService.get<string>('DATABASE_NAME'),
-  entities: [User, Product],
-  migrations: ['dist/database/migrations/*{.ts,.js}'],
+  entities: [User, Product, ProductImage, Supplier],
+  migrations: [__dirname + '/../database/migrations/*{.ts,.js}'],
   namingStrategy: new SnakeNamingStrategy(),
-  synchronize: false,
+  synchronize: true,
   logging: true,
 });
 
@@ -25,10 +27,10 @@ const dataSourceOptions: DataSourceOptions = {
   username: process.env.DATABASE_USER || 'user',
   password: process.env.DATABASE_PASSWORD || 'password',
   database: process.env.DATABASE_NAME || 'nest_db',
-  entities: [User, Product],
-  migrations: ['src/database/migrations/*{.ts,.js}'],
+  entities: [User, Product, ProductImage, Supplier],
+  migrations: [__dirname + '/../database/migrations/*{.ts,.js}'],
   namingStrategy: new SnakeNamingStrategy(),
-  synchronize: false,
+  synchronize: true,
 };
 
 export default new DataSource(dataSourceOptions);

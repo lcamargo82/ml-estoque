@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: ml_postgres_prod
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
+    # Note que tirei o ports "5432:5432" por segurança. O banco fica isolado.
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    networks:
+      - ml_network
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+      # Aqui nós REMOVEMOS o "target: development" para ele construir a versão otimizada de produção
+    container_name: nest_api_prod
+    restart: always
+    environment:
+      DATABASE_HOST: db
+      DATABASE_PORT: 5432
+      DATABASE_USER: ${DB_USERNAME}
+      DATABASE_PASSWORD: ${DB_PASSWORD}
+      DATABASE_NAME: ${DB_DATABASE}
+      JWT_SECRET: ${JWT_SECRET}
+      PORT: 3000
+    # Removidos os volumes locais. O código ficará embutido na imagem Docker.
+    networks:
+      - ml_network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: nest_frontend_prod
+    restart: always
+    ports:
+      - "80:80" # Esta porta vai receber o tráfego da Cloudflare
+    depends_on:
+      - api
+    networks:
+      - ml_network
+
+networks:
+  ml_network:
+    driver: bridge
+
+volumes:
+  postgres_data_prod:
+  

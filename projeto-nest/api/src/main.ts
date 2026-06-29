@@ -11,6 +11,14 @@ async function bootstrap() {
     logger: winstonLoggerConfig,
   });
 
+  // Habilitar CORS
+  app.enableCors();
+
+  // Aumentar limite de payload para imagens
+  const express = require('express');
+  app.use(express.json({ limit: '10mb' }));
+  app.use(express.urlencoded({ limit: '10mb', extended: true }));
+
   // Prefixo Global da API
   app.setGlobalPrefix('api/v1');
 
@@ -18,7 +26,7 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
-      forbidNonWhitelisted: true,
+      forbidNonWhitelisted: false,
       transform: true,
     }),
   );
@@ -44,7 +52,7 @@ async function bootstrap() {
   );
 
   const port = process.env.PORT || 3000;
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
   
   Logger.log(`🚀 Application is running on: http://localhost:${port}/api/v1`);
   Logger.log(`📚 Documentation (Scalar) available at: http://localhost:${port}/reference`);

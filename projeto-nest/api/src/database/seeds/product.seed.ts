@@ -1,6 +1,8 @@
 import { DataSource } from 'typeorm';
 import { Product } from '@modules/products/entities/product.entity';
 import { User, UserRole } from '@modules/users/entities/user.entity';
+import { Supplier } from '@modules/suppliers/entities/supplier.entity';
+import { ProductImage } from '@modules/products/entities/product-image.entity';
 import * as bcrypt from 'bcrypt';
 import * as dotenv from 'dotenv';
 
@@ -13,7 +15,7 @@ const dataSource = new DataSource({
   username: process.env.DATABASE_USER || 'user',
   password: process.env.DATABASE_PASSWORD || 'password',
   database: process.env.DATABASE_NAME || 'nest_db',
-  entities: [Product, User],
+  entities: [Product, User, Supplier, ProductImage],
 });
 
 async function runSeed() {
@@ -43,19 +45,23 @@ async function runSeed() {
   const products = [
     {
       name: 'iPhone 15 Pro Max',
+      sku: 'IPH-15-PM-1',
       slug: 'iphone-15-pro-max',
       quantity: 50,
-      costPrice: 6000.0,
-      sellingPrice: 9500.0,
-      updatedBy: adminEmail,
+      purchasePrice: 6000.0,
+      mlSellingPrice: 9500.0,
+      directSellingPrice: 9000.0,
+      createdBy: adminEmail,
     },
     {
       name: 'MacBook Air M2',
+      sku: 'MAC-AIR-M2-1',
       slug: 'macbook-air-m2',
       quantity: 20,
-      costPrice: 5000.0,
-      sellingPrice: 8200.0,
-      updatedBy: adminEmail,
+      purchasePrice: 5000.0,
+      mlSellingPrice: 8200.0,
+      directSellingPrice: 7800.0,
+      createdBy: adminEmail,
     },
   ];
 

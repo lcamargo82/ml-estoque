@@ -1,27 +1,36 @@
 <template>
   <div class="p-8">
-    <div class="flex justify-between items-center mb-10">
-      <div>
-        <h2 class="text-3xl font-bold text-white tracking-tight">Dashboard</h2>
-        <p class="text-neutral mt-1">Bem-vindo de volta, <span class="text-primary font-semibold">{{ authStore.user?.name }}</span></p>
-      </div>
-      <button @click="handleLogout" class="px-4 py-2 rounded-lg bg-surface hover:bg-white/10 text-white transition-all text-sm font-medium border border-white/5">
-        Encerrar Sessão
-      </button>
+    <div class="mb-10">
+      <h2 class="text-3xl font-bold text-white tracking-tight">Dashboard</h2>
+      <p class="text-neutral mt-1">Bem-vindo de volta, <span class="text-primary font-semibold">{{ authStore.user?.name }}</span></p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div v-if="loading" class="text-neutral text-center p-10">
+      <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mr-3"></div>
+      Carregando estatísticas...
+    </div>
+
+    <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div class="glass-card p-6 border-l-4 border-l-primary">
-        <h3 class="text-neutral text-sm font-medium uppercase tracking-wider mb-2">Total de Produtos</h3>
-        <p class="text-4xl font-bold text-white">128</p>
+        <h3 class="text-neutral text-sm font-medium uppercase tracking-wider mb-2">Total de Itens em Estoque</h3>
+        <p class="text-4xl font-bold text-white">{{ formatNumber(stats.totalQuantity) }}</p>
+        <p class="text-neutral/70 text-xs mt-1">{{ formatNumber(stats.totalProducts) }} produtos distintos</p>
       </div>
       <div class="glass-card p-6 border-l-4 border-l-secondary">
-        <h3 class="text-neutral text-sm font-medium uppercase tracking-wider mb-2">Valor em Estoque</h3>
-        <p class="text-4xl font-bold text-white">R$ 45.200</p>
+        <h3 class="text-neutral text-sm font-medium uppercase tracking-wider mb-2">Valor Total de Custo</h3>
+        <p class="text-4xl font-bold text-white">{{ formatCurrency(stats.totalCostValue) }}</p>
+        <p class="text-neutral/70 text-xs mt-1">Preço médio: {{ formatCurrency(stats.totalQuantity > 0 ? stats.totalCostValue / stats.totalQuantity : 0) }} / unidade</p>
       </div>
       <div class="glass-card p-6 border-l-4 border-l-tertiary">
-        <h3 class="text-neutral text-sm font-medium uppercase tracking-wider mb-2">Pedidos Pendentes</h3>
-        <p class="text-4xl font-bold text-white">12</p>
+        <h3 class="text-neutral text-sm font-medium uppercase tracking-wider mb-2">Status Mercado Livre</h3>
+        <div class="flex items-baseline justify-between">
+          <p class="text-4xl font-bold text-white">{{ formatNumber(stats.totalListed) }}</p>
+          <span class="text-neutral text-sm">Anunciados</span>
+        </div>
+        <div class="flex items-baseline justify-between mt-2 border-t border-white/5 pt-2">
+          <p class="text-lg font-semibold text-white/80">{{ formatNumber(stats.totalUnlisted) }}</p>
+          <span class="text-neutral/80 text-xs">Não Anunciados</span>
+        </div>
       </div>
     </div>
 
@@ -40,14 +49,36 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted } from 'vue';
 import { useAuthStore } from '@/stores/auth';
-import { useRouter } from 'vue-router';
+import { DashboardRepository } from '@/repositories/DashboardRepository';
+import type { DashboardStats } from '@/types';
 
 const authStore = useAuthStore();
-const router = useRouter();
+const loading = ref(true);
+const stats = ref<DashboardStats>({
+  totalProducts: 0,
+  totalQuantity: 0,
+  totalCostValue: 0,
+  totalListed: 0,
+  totalUnlisted: 0,
+});
 
-function handleLogout() {
-  authStore.logout();
-  router.push({ name: 'Login' });
-}
+const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+};
+
+const formatNumber = (value: number) => {
+  return new Intl.NumberFormat('pt-BR').format(value);
+};
+
+onMounted(async () => {
+  try {
+    stats.value = await DashboardRepository.getStats();
+  } catch (error) {
+    console.error('Erro ao buscar estatísticas do dashboard:', error);
+  } finally {
+    loading.value = false;
+  }
+});
 </script>

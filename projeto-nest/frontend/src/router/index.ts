@@ -12,10 +12,40 @@ const router = createRouter({
       meta: { public: true },
     },
     {
+      path: '/forgot-password',
+      name: 'ForgotPassword',
+      component: () => import('@/views/ForgotPassword.vue'),
+      meta: { public: true },
+    },
+    {
+      path: '/reset-password',
+      name: 'ResetPassword',
+      component: () => import('@/views/ResetPassword.vue'),
+      meta: { public: true },
+    },
+    {
       path: '/',
       name: 'Dashboard',
       component: () => import('@/views/Dashboard.vue'),
-      meta: { public: false },
+      meta: { title: 'Dashboard' },
+    },
+    {
+      path: '/products',
+      name: 'Products',
+      component: () => import('@/views/Products.vue'),
+      meta: { title: 'Catálogo de Produtos' },
+    },
+    {
+      path: '/users',
+      name: 'Users',
+      component: () => import('@/views/Users.vue'),
+      meta: { title: 'Gestão de Usuários' },
+    },
+    {
+      path: '/suppliers',
+      name: 'Suppliers',
+      component: () => import('@/views/Suppliers.vue'),
+      meta: { title: 'Fornecedores' },
     },
   ],
 });

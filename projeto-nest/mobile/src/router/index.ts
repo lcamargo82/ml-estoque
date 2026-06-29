@@ -1,0 +1,90 @@
+import { createRouter, createWebHashHistory } from '@ionic/vue-router';
+import { RouteRecordRaw } from 'vue-router';
+import { useAuthStore } from '../stores/auth';
+
+export const resetRouteFromUrl = (rawUrl: string) => {
+  try {
+    const url = new URL(rawUrl);
+    const token = url.searchParams.get('token');
+    if (url.protocol !== 'mlestoque:' || url.hostname !== 'reset-password' || !token) {
+      return null;
+    }
+    return { path: '/reset-password', query: { token } };
+  } catch {
+    return null;
+  }
+};
+
+const routes: Array<RouteRecordRaw> = [
+  {
+    path: '/',
+    redirect: '/home'
+  },
+  {
+    path: '/login',
+    name: 'Login',
+    component: () => import('../views/LoginView.vue'),
+    meta: { public: true }
+  },
+  {
+    path: '/reset-password',
+    name: 'ResetPassword',
+    component: () => import('../views/ResetPasswordView.vue'),
+    meta: { public: true }
+  },
+  { path: '/forgot-password', name: 'ForgotPassword', component: () => import('../views/ForgotPasswordView.vue'), meta: { public: true } },
+  { path: '/suppliers', name: 'Suppliers', component: () => import('../views/SuppliersView.vue') },
+  { path: '/suppliers/new', name: 'NewSupplier', component: () => import('../views/SupplierFormView.vue') },
+  { path: '/suppliers/:id/edit', name: 'EditSupplier', component: () => import('../views/SupplierFormView.vue') },
+  { path: '/profile', name: 'Profile', component: () => import('../views/ProfileView.vue') },
+  {
+    path: '/home',
+    name: 'Home',
+    component: () => import('../views/HomeView.vue')
+  },
+  {
+    path: '/scanner',
+    name: 'Scanner',
+    component: () => import('../views/ScannerView.vue')
+  },
+  {
+    path: '/inventory',
+    name: 'Inventory',
+    component: () => import('../views/InventoryView.vue')
+  },
+  {
+    path: '/products/add',
+    name: 'AddProduct',
+    component: () => import('../views/AddProductView.vue')
+  },
+  { path: '/products/:id/edit', name: 'EditProduct', component: () => import('../views/AddProductView.vue') },
+  {
+    path: '/movement',
+    name: 'Movement',
+    component: () => import('../views/MovementView.vue')
+  }
+]
+
+const router = createRouter({
+  history: createWebHashHistory(import.meta.env.BASE_URL),
+  routes
+})
+
+router.beforeEach(async (to, from, next) => {
+  const auth = useAuthStore();
+  
+  // Inicializar o store se necessário (buscar token persistido)
+  if (!auth.token) {
+    await auth.initialize();
+  }
+
+  if (!to.meta.public && !auth.isAuthenticated) {
+    next({ name: 'Login' });
+  } else if (to.name === 'Login' && auth.isAuthenticated) {
+    next({ name: 'Home' });
+  } else {
+    next();
+  }
+});
+
+export default router

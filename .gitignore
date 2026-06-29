@@ -31,6 +31,12 @@ Thumbs.db
 # Project Specific
 .agent/
 .gemini/
+.cursorrules/
+.cursorrules-api
+.cursorrules-web
+.cursorrules-mobile
+Estrutura_Projeto.md
+
 projeto-nest/api/node_modules/
 projeto-nest/frontend/node_modules/
 
@@ -38,3 +44,4 @@ projeto-nest/frontend/node_modules/
 logs/
 *.log
 npm-debug.log*
+.superpowers/
