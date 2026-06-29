@@ -5,10 +5,8 @@ services:
     image: postgres:15
     container_name: nest_postgres
     restart: always
-    environment:
-      POSTGRES_USER: ${DB_USERNAME:-user}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
-      POSTGRES_DB: ${DB_DATABASE:-nest_db}
+    env_file:
+      - .env
     ports:
       - "5432:5432"
     volumes:
@@ -17,14 +15,11 @@ services:
       - ml_network
 
   prometheus:
-    #image: prom/prometheus:latest
     build: 
       context: .
       dockerfile: Dockerfile.prometheus
     container_name: nest_prometheus
     restart: always
-    # volumes:
-    #   - ./prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"
     networks:
@@ -40,17 +35,8 @@ services:
     ports:
       - "3000:3000"
       - "9464:9464"
-    environment:
-      DATABASE_HOST: db
-      DATABASE_PORT: 5432
-      DATABASE_USER: ${DB_USERNAME:-user}
-      DATABASE_PASSWORD: ${DB_PASSWORD:-password}
-      DATABASE_NAME: ${DB_DATABASE:-nest_db}
-      JWT_SECRET: ${JWT_SECRET:-super-secret-key}
-      PORT: 3000
-    # volumes:
-    #   - ./api:/usr/src/app
-    #   - /usr/src/app/node_modules
+    env_file:
+      - .env
     networks:
       - ml_network
 
@@ -73,3 +59,4 @@ networks:
 
 volumes:
   postgres_data:
+  
