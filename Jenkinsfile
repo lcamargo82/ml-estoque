@@ -67,7 +67,18 @@ pipeline {
             steps {
                 dir('projeto-nest') {
                     echo '🏗️ Construindo as imagens Docker de produção...'
-                    sh "docker compose -f ${DOCKER_COMPOSE_FILE} -p ${COMPOSE_PROJECT_NAME} build"
+                    sh '''
+                    # Força o Linux a ler o .env e carregar na memória do Jenkins
+                    set -a
+                    source .env
+                    set +a
+                    
+                    # Constrói o frontend do zero, ignorando qualquer cache
+                    docker compose -f docker-compose.yml -p ml_estoque_prod build --no-cache frontend
+                    
+                    # Constrói o resto normalmente
+                    docker compose -f docker-compose.yml -p ml_estoque_prod build
+                    '''
                 }
             }
         }
