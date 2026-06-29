@@ -5,7 +5,6 @@ pipeline {
         // Nomes cadastrados na interface do Jenkins (Global Tool Configuration)
         // Ajuste caso tenha dado um nome diferente de 'node-20' ou 'meu-docker'
         nodejs 'node-24'
-        dockerTool 'docker'
     }
 
     environment {
