@@ -16,7 +16,7 @@ export const getTypeOrmConfig = (configService: ConfigService): DataSourceOption
   entities: [User, Product, ProductImage, Supplier],
   migrations: [__dirname + '/../database/migrations/*{.ts,.js}'],
   namingStrategy: new SnakeNamingStrategy(),
-  synchronize: true,
+  synchronize: false,
   logging: true,
 });
 
